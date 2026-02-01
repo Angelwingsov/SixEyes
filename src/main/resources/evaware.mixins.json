@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "sweetie.evaware.mixin",
+  "package": "com.sixeyes.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
   ],

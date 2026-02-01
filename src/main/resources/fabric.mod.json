@@ -17,7 +17,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"sweetie.evaware.Evaware"
+			"com.sixeyes.client.Evaware"
 		]
 	},
 	"mixins": [

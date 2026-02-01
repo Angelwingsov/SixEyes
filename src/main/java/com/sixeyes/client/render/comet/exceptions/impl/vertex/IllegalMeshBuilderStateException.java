@@ -1,0 +1,20 @@
+package com.sixeyes.client.render.comet.exceptions.impl.vertex;
+
+import com.sixeyes.client.render.comet.exceptions.CometException;
+
+public class IllegalMeshBuilderStateException extends CometException {
+
+    @java.io.Serial
+    private static final long serialVersionUID = 6447527243741543095L;
+
+    public IllegalMeshBuilderStateException(String details, String[] reasons, String[] solutions) {
+        super(
+                "Illegal MeshBuilder state.",
+                details,
+                reasons,
+                solutions
+        );
+    }
+}
+
+
