@@ -16,7 +16,7 @@ uniform sampler2D uTexture;
 out vec4 fragColor;
 
 void main() {
-    float alpha = ralpha(Size, fragCoord, Radius, 1f);
+    float alpha = ralpha(Size, fragCoord, Radius, 1.0);
 
     vec4 texColor = texture(uTexture, TexCoord);
     vec4 mixedColor = mix(texColor, vertexColor, Mix);

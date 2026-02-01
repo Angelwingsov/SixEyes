@@ -12,7 +12,7 @@ in vec2 fragCoord;
 out vec4 fragColor;
 
 void main() {
-    float alpha = ralpha(Size, fragCoord, Radius, 1f);
+    float alpha = ralpha(Size, fragCoord, Radius, 1.0);
 
     fragColor = vertexColor;
     fragColor *= alpha;
