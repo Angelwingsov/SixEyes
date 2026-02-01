@@ -1,0 +1,9 @@
+accessWidener v1  named
+
+accessible field net/minecraft/client/gl/Framebuffer depthAttachmentView Lcom/mojang/blaze3d/textures/GpuTextureView;
+accessible field net/minecraft/client/gl/Framebuffer depthAttachment Lcom/mojang/blaze3d/textures/GpuTexture;
+accessible field net/minecraft/client/gl/Framebuffer colorAttachmentView Lcom/mojang/blaze3d/textures/GpuTextureView;
+accessible field net/minecraft/client/gl/Framebuffer colorAttachment Lcom/mojang/blaze3d/textures/GpuTexture;
+
+accessible field com/mojang/blaze3d/textures/GpuTexture addressModeV Lcom/mojang/blaze3d/textures/AddressMode;
+accessible field com/mojang/blaze3d/textures/GpuTexture addressModeU Lcom/mojang/blaze3d/textures/AddressMode;
