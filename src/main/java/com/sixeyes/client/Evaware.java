@@ -19,7 +19,7 @@ import static com.sixeyes.client.Mc.mc;
 import static com.sixeyes.client.api.render.RenderUtil.*;
 
 public class Evaware implements ModInitializer {
-    public static final String MOD_ID = "evaware";
+    public static final String MOD_ID = "SixEyes";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static boolean init = false;
@@ -80,7 +80,7 @@ public class Evaware implements ModInitializer {
                         .build()
         );
 
-        LOGGER.info("Hello Fabric world!");
+        LOGGER.info("Вай бля ремила спс за рендер, спастил");
     }
 }
 
