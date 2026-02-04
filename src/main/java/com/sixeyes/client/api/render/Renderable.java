@@ -9,12 +9,12 @@ import com.sixeyes.client.render.comet.program.shader.ShaderType;
 import com.sixeyes.client.render.comet.vertex.DrawMode;
 import com.sixeyes.client.render.comet.vertex.format.VertexFormat;
 import com.sixeyes.client.render.comet.vertex.mesh.IMesh;
-import com.sixeyes.client.Mc;
+import com.sixeyes.client.api.utility.other.Mc;
 
 public abstract class Renderable implements Mc {
     public record Snippets(GlProgramSnippet... snippets) {}
 
-    private static final String SHADER_PATH = "assets/evaware/shaders/";
+    private static final String SHADER_PATH = "assets/sixeyes/shaders/";
     public static final String SHADER_CORE_PATH = SHADER_PATH + "core/";
     public static final String SHADER_INCLUDE_PATH = SHADER_PATH + "include/";
 
@@ -76,5 +76,3 @@ public abstract class Renderable implements Mc {
         drawImmediate(mesh, true, true);
     }
 }
-
-

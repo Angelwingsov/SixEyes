@@ -14,11 +14,10 @@ import com.sixeyes.client.mixin.IGlGpuBuffer;
 
 import java.awt.*;
 import java.util.Arrays;
-
-import static com.sixeyes.client.Mc.mc;
+import static com.sixeyes.client.api.utility.other.Mc.mc;
 import static com.sixeyes.client.api.render.RenderUtil.*;
 
-public class Evaware implements ModInitializer {
+public class SixEyes implements ModInitializer {
     public static final String MOD_ID = "SixEyes";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
@@ -57,7 +56,6 @@ public class Evaware implements ModInitializer {
 
         SHADOW.priority(RenderPipeline.GAME).drawShadow(x, y, size, size, new Color(0, 0, 0, 20), round, 8f);
 
-
         LAYER_CONTROL.renderAll();
 
         LAYER_CONTROL.batchables.forEach(Batchable::end);
@@ -77,10 +75,8 @@ public class Evaware implements ModInitializer {
                 CometLoaders.IN_JAR.createShaderLibraryBuilder()
                         .name("shapes")
                         .library(include + "shapes.glsl")
-                        .build()
-        );
+                        .build());
 
-        LOGGER.info("Вай бля ремила спс за рендер, спастил");
+        LOGGER.info("SixEyes initialized!");
     }
 }
-

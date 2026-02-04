@@ -1,4 +1,4 @@
-package com.sixeyes.client.helpers;
+package com.sixeyes.client.api.utility.other;
 
 import lombok.experimental.UtilityClass;
 import net.minecraft.text.*;

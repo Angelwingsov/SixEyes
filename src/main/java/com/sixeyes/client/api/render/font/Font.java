@@ -20,8 +20,8 @@ import com.sixeyes.client.api.render.Batchable;
 import com.sixeyes.client.api.render.RenderPipeline;
 import com.sixeyes.client.api.render.font.FontData.AtlasData;
 import com.sixeyes.client.api.render.font.FontData.MetricsData;
-import com.sixeyes.client.helpers.ReplaceUtil;
-import com.sixeyes.client.helpers.TextUtil;
+import com.sixeyes.client.api.utility.other.ReplaceUtil;
+import com.sixeyes.client.api.utility.other.TextUtil;
 
 import java.awt.*;
 import java.util.List;

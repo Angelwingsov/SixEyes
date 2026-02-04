@@ -1,4 +1,4 @@
-package com.sixeyes.client.helpers;
+package com.sixeyes.client.api.utility.other;
 
 import com.google.gson.Gson;
 import lombok.experimental.UtilityClass;
@@ -16,15 +16,15 @@ public class FileUtil {
     private final Gson GSON = new Gson();
 
     public InputStream getFromAssets(String input) {
-        return FileUtil.class.getResourceAsStream("/assets/evaware/" + input);
+        return FileUtil.class.getResourceAsStream("/assets/sixeyes/" + input);
     }
 
     public Identifier getImage(String path) {
-        return Identifier.of("evaware", "images/" + path + ".png");
+        return Identifier.of("sixeyes", "images/" + path + ".png");
     }
 
     public Identifier getShader(String name) {
-        return Identifier.of("evaware", "core/" + name);
+        return Identifier.of("sixeyes", "core/" + name);
     }
 
     public <T> T fromJsonToInstance(Identifier identifier, Class<T> clazz) {
@@ -36,13 +36,11 @@ public class FileUtil {
     }
 
     public String toString(Identifier identifier, String delimiter) {
-        try(InputStream inputStream = MinecraftClient.getInstance().getResourceManager().open(identifier);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (InputStream inputStream = MinecraftClient.getInstance().getResourceManager().open(identifier);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             return reader.lines().collect(Collectors.joining(delimiter));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 }
-
-

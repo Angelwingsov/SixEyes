@@ -1,27 +1,27 @@
 {
-    "accessWidener": "evaware.accesswidener",
+	"accessWidener": "sixeyes.accesswidener",
 	"schemaVersion": 1,
-	"id": "evaware",
+	"id": "sixeyes",
 	"version": "${version}",
-	"name": "evaware",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "SixEyes",
+	"description": "SixEyes Client Mod",
 	"authors": [
-		"Me!"
+		"Angelwingsov, Reneko, Skawz"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/Angelwingsov/SixEyes"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/evaware/icon.png",
+	"icon": "assets/sixeyes/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.sixeyes.client.Evaware"
+			"com.sixeyes.client.SixEyes"
 		]
 	},
 	"mixins": [
-		"evaware.mixins.json"
+		"sixeyes.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.17.3",

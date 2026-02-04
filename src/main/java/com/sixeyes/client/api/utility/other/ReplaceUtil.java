@@ -1,7 +1,6 @@
-package com.sixeyes.client.helpers;
+package com.sixeyes.client.api.utility.other;
 
 import lombok.experimental.UtilityClass;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 

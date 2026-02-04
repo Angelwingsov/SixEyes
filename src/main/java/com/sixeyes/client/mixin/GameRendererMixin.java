@@ -2,7 +2,7 @@ package com.sixeyes.client.mixin;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.sixeyes.client.Evaware;
+import com.sixeyes.client.SixEyes;
 import com.sixeyes.client.api.render.Renderable;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderTickCounter;
@@ -19,7 +19,8 @@ import static com.sixeyes.client.api.render.RenderUtil.*;
 public class GameRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/fog/FogRenderer;rotate()V", shift = At.Shift.BEFORE))
     public void modifyRenderBeforeGui(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
-        if (Evaware.initRender()) return;
+        if (SixEyes.initRender())
+            return;
 
         List<Renderable> snapshot = LAYER_CONTROL.layers;
         snapshot.forEach(Renderable::load);
@@ -29,7 +30,7 @@ public class GameRendererMixin {
         GlStateManager._disableDepthTest();
         RenderSystem.resetTextureMatrix();
 
-        Evaware.renderTest();
+        SixEyes.renderTest();
 
         MATRIX_CONTROL.scaledProjection();
     }
