@@ -3,7 +3,6 @@ package com.sixeyes.client.render.comet.program.uniform.uniforms.sampler;
 import com.sixeyes.client.render.texture.GlTex;
 import com.sixeyes.client.render.comet.program.GlProgram;
 import com.sixeyes.client.render.comet.program.uniform.GlUniform;
-import com.sixeyes.client.render.comet.program.uniform.UniformType;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import net.minecraft.client.texture.GlTextureView;
 
@@ -17,8 +16,8 @@ public class SamplerUniform extends GlUniform {
     public SamplerUniform(String name, int location, GlProgram glProgram) {
         super(name, location, glProgram);
 
-        this.samplerId = glProgram.getSamplersAmount() + 1;
-        glProgram.setSamplersAmount(this.samplerId);
+        this.samplerId = glProgram.getSamplersAmount();
+        glProgram.setSamplersAmount(this.samplerId + 1);
     }
 
 
@@ -52,7 +51,7 @@ public class SamplerUniform extends GlUniform {
 
     @Override
     public void upload() {
-        if (this.uploadRunnable != null) {
+        if (this.uploadRunnable != this.program) {
             if (GlProgram.ACTIVE_PROGRAM == null)
                 GlStateManager._glUniform1i(this.location, getSamplerId());
 

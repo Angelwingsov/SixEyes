@@ -1,9 +1,13 @@
 package com.sixeyes.client.api.render.font;
 
+import com.mojang.blaze3d.opengl.GlConst;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.sixeyes.client.api.utility.other.FileUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
+import net.minecraft.client.texture.GlTexture;
 import net.minecraft.util.Identifier;
-import com.sixeyes.client.api.utility.other.FileUtil;
+import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +37,11 @@ public class FontBuilder {
                     + "; Are you sure this is json file? Try to check the correctness of its syntax.");
         }
 
-        texture.setFilter(true, false);
+        if (texture.getGlTexture() instanceof GlTexture glTexture) {
+            GlStateManager._bindTexture(glTexture.getGlId());
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        }
 
         float aWidth = data.atlas().width();
         float aHeight = data.atlas().height();

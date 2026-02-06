@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec4 pos;
+layout(location = 0) in vec4 pos;
 
 layout(std140) uniform Projection {
     mat4 projMat;

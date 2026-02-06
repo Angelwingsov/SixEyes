@@ -2,15 +2,12 @@ package com.sixeyes.client.render.comet.program;
 
 import com.sixeyes.client.render.comet.Bindable;
 import com.sixeyes.client.render.comet.Compilable;
-import com.sixeyes.client.render.comet.compile.GlobalCometCompiler;
 import com.sixeyes.client.render.comet.exceptions.ExceptionPrinter;
 import com.sixeyes.client.render.comet.exceptions.impl.NoSuchUniformException;
 import com.sixeyes.client.render.comet.program.compile.CompileResult;
 import com.sixeyes.client.render.comet.program.compile.CompileStatus;
-import com.sixeyes.client.render.comet.program.shader.GlShader;
 import com.sixeyes.client.render.comet.program.uniform.GlUniform;
 import com.sixeyes.client.render.comet.program.uniform.UniformType;
-import com.sixeyes.client.render.comet.program.uniform.uniforms.OneTypeGlUniform;
 import com.sixeyes.client.render.comet.program.uniform.uniforms.buffer.BufferUniform;
 import com.sixeyes.client.render.comet.program.uniform.uniforms.sampler.SamplerUniform;
 import org.apache.commons.lang3.StringUtils;
@@ -84,13 +81,13 @@ public class GlProgram implements Bindable, Compilable, Closeable {
     public void bind() {
         GL20.glUseProgram(getId());
 
+        ACTIVE_PROGRAM = this;
+
         if (!this.updatedUniforms.isEmpty()) {
             for (GlUniform glUniform : this.updatedUniforms)
                 glUniform.upload();
             this.updatedUniforms.clear();
         }
-
-        ACTIVE_PROGRAM = this;
     }
 
     
@@ -158,6 +155,8 @@ public class GlProgram implements Bindable, Compilable, Closeable {
 
     
     public SamplerUniform getSamplerNullable(int samplerId) {
+        if (samplerId < 0 || samplerId >= this.samplers.size())
+            return null;
         return this.samplers.get(samplerId);
     }
 

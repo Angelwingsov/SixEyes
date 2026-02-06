@@ -1,7 +1,6 @@
 package com.sixeyes.client.mixin;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.sixeyes.client.SixEyes;
 import com.sixeyes.client.api.render.Renderable;
 import net.minecraft.client.render.GameRenderer;
@@ -28,7 +27,6 @@ public class GameRendererMixin {
         MATRIX_CONTROL.unscaledProjection();
 
         GlStateManager._disableDepthTest();
-        RenderSystem.resetTextureMatrix();
 
         SixEyes.renderTest();
 

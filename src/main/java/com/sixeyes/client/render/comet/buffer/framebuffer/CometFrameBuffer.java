@@ -4,7 +4,12 @@ import com.sixeyes.client.render.comet.FrameBufferUtils;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.texture.GlTexture;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import java.awt.*;
 
@@ -42,6 +47,21 @@ public class CometFrameBuffer extends Framebuffer {
     public void clearAllTextures() {
         clearColorTexture();
         clearDepthTexture();
+    }
+
+    public void setFilter(FilterMode filter) {
+        if (!(this.colorAttachment instanceof GlTexture glTexture)) {
+            return;
+        }
+
+        int target = (glTexture.usage() & GpuTexture.USAGE_CUBEMAP_COMPATIBLE) != 0
+                ? GL13.GL_TEXTURE_CUBE_MAP
+                : GlConst.GL_TEXTURE_2D;
+        int glFilter = filter == FilterMode.LINEAR ? GL11.GL_LINEAR : GL11.GL_NEAREST;
+
+        GL11.glBindTexture(target, glTexture.getGlId());
+        GL11.glTexParameteri(target, GL11.GL_TEXTURE_MIN_FILTER, glFilter);
+        GL11.glTexParameteri(target, GL11.GL_TEXTURE_MAG_FILTER, glFilter);
     }
 
     

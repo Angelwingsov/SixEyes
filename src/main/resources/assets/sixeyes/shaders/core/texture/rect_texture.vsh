@@ -2,12 +2,12 @@
 
 #include<shapes>
 
-in vec4 Position;
-in vec4 Color;
-in vec2 Texture;
-in vec2 aSize;
-in vec4 aRadius;
-in float aMix;
+layout(location = 0) in vec4 Position;
+layout(location = 1) in vec4 Color;
+layout(location = 2) in vec2 Texture;
+layout(location = 3) in vec2 aSize;
+layout(location = 4) in vec4 aRadius;
+layout(location = 5) in float aMix;
 
 layout(std140) uniform Projection {
     mat4 projMat;

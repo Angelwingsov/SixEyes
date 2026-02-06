@@ -7,12 +7,17 @@ import com.sixeyes.client.render.comet.program.uniform.UniformType;
 import com.sixeyes.client.render.comet.vertex.DrawMode;
 import com.sixeyes.client.render.comet.vertex.format.VertexFormat;
 import com.sixeyes.client.render.comet.vertex.mesh.IMesh;
-import com.mojang.blaze3d.textures.AddressMode;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.texture.GlTexture;
 import net.minecraft.client.texture.GlTextureView;
 import org.joml.Vector2f;
 import com.sixeyes.client.api.render.Renderable;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,8 +131,21 @@ public class KawaseRenderer extends Renderable {
         setGlobalProgram(program);
         initMatrix();
 
-        AddressMode prevAddressModeU = source.getColorAttachment().addressModeU;
-        AddressMode prevAddressModeV = source.getColorAttachment().addressModeV;
+        GlTexture glTexture = source.getColorAttachment() instanceof GlTexture texture ? texture : null;
+        int prevWrapS = 0;
+        int prevWrapT = 0;
+        int target = GlConst.GL_TEXTURE_2D;
+
+        if (glTexture != null) {
+            target = (glTexture.usage() & GpuTexture.USAGE_CUBEMAP_COMPATIBLE) != 0
+                    ? GL13.GL_TEXTURE_CUBE_MAP
+                    : GlConst.GL_TEXTURE_2D;
+            GL11.glBindTexture(target, glTexture.getGlId());
+            prevWrapS = GL11.glGetTexParameteri(target, GL11.GL_TEXTURE_WRAP_S);
+            prevWrapT = GL11.glGetTexParameteri(target, GL11.GL_TEXTURE_WRAP_T);
+            GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+        }
 
         float texelSizeX = 1f / source.textureWidth;
         float texelSizeY = 1f / source.textureHeight;
@@ -137,9 +155,12 @@ public class KawaseRenderer extends Renderable {
 
         program.getUniform("uTexture", UniformType.SAMPLER).set((GlTextureView) source.getColorAttachmentView());
 
-        source.getColorAttachment().setAddressMode(AddressMode.CLAMP_TO_EDGE);
         drawFullscreenQuad();
-        source.getColorAttachment().setAddressMode(prevAddressModeU, prevAddressModeV);
+        if (glTexture != null) {
+            GL11.glBindTexture(target, glTexture.getGlId());
+            GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_S, prevWrapS);
+            GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_T, prevWrapT);
+        }
     }
 
     private void drawFullscreenQuad() {

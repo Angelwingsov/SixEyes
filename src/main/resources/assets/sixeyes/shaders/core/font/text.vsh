@@ -1,12 +1,12 @@
 #version 330 core
 
-in vec4 Position;
-in vec2 Texture;
-in vec4 Color;
+layout(location = 0) in vec4 Position;
+layout(location = 1) in vec2 Texture;
+layout(location = 2) in vec4 Color;
 
 // x = Thickness, y = Smoothness, z = OutlineThickness
-in vec3 aStyle;
-in vec4 aOutlineColor;
+layout(location = 3) in vec3 aStyle;
+layout(location = 4) in vec4 aOutlineColor;
 
 layout(std140) uniform Projection {
     mat4 projMat;
