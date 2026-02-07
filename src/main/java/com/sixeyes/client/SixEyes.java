@@ -38,7 +38,7 @@ public class SixEyes implements ModInitializer {
 
     public static void renderTest() {
         KAWASE.applyBlur();
-
+        //test commit (johon0error)
         int interacts = 10;
         float size = 67f;
         float x = 3f;

@@ -16,6 +16,7 @@ Using third-party modifications may violate the terms of service of some Minecra
 *   Angelwingsov - Initial development
 *   Reneko 
 *   Skawz
+*   johon0error
 
 
 ---
