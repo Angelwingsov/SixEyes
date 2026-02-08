@@ -1,13 +1,12 @@
 package com.sixeyes.client;
 
+import com.sixeyes.client.module.ModuleManager;
 import com.sixeyes.client.render.comet.CometLoaders;
 import com.sixeyes.client.render.comet.CometRenderer;
 import com.sixeyes.client.render.comet.blend.DstFactor;
 import com.sixeyes.client.render.comet.blend.SrcFactor;
 import com.sixeyes.client.render.comet.compile.GlobalCometCompiler;
 import net.fabricmc.api.ModInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.sixeyes.client.api.render.*;
 import com.sixeyes.client.api.render.font.Fonts;
 import com.sixeyes.client.mixin.IGlGpuBuffer;
@@ -18,9 +17,7 @@ import static com.sixeyes.client.api.utility.other.Mc.mc;
 import static com.sixeyes.client.api.render.RenderUtil.*;
 
 public class SixEyes implements ModInitializer {
-    public static final String MOD_ID = "SixEyes";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
+    public static ModuleManager moduleManager;
     public static boolean init = false;
 
     public static boolean initRender() {
@@ -32,13 +29,11 @@ public class SixEyes implements ModInitializer {
             init = true;
             return true;
         }
-
         return false;
     }
 
     public static void renderTest() {
         KAWASE.applyBlur();
-        //test commit (johon0error)
         int interacts = 10;
         float size = 67f;
         float x = 3f;
@@ -76,7 +71,7 @@ public class SixEyes implements ModInitializer {
                         .name("shapes")
                         .library(include + "shapes.glsl")
                         .build());
-
-        LOGGER.info("SixEyes initialized!");
+        
+        moduleManager = new ModuleManager();
     }
 }
