@@ -9,7 +9,7 @@ Using third-party modifications may violate the terms of service of some Minecra
 ## Credits
 
 *   **Render**: Provided by remila.x
-*   **Event System**: Orbit by MeteorDevelopments
+*   **Event System**: Flora by remila.x
 
 ## Contributors
 
