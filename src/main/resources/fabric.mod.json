@@ -14,10 +14,13 @@
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/sixeyes/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"com.sixeyes.client.SixEyes"
+		"client": [
+			{
+				"value": "com.sixeyes.SixEyes",
+				"adapter": "kotlin"
+			}
 		]
 	},
 	"mixins": [

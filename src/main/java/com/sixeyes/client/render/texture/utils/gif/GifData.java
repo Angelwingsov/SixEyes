@@ -13,5 +13,3 @@ public class GifData {
         this.updateDelay = updateDelay;
     }
 }
-
-

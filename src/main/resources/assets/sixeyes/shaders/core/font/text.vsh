@@ -1,29 +1,33 @@
 #version 330 core
 
-layout(location = 0) in vec4 Position;
-layout(location = 1) in vec2 Texture;
-layout(location = 2) in vec4 Color;
+in vec4 Position;
+in vec2 UV0;
+in vec4 Color;
+in vec3 Style0;
+in vec4 OutlineColor0;
+in vec4 Fade0;
+in vec4 Scissor0;
 
-// x = Thickness, y = Smoothness, z = OutlineThickness
-layout(location = 3) in vec3 aStyle;
-layout(location = 4) in vec4 aOutlineColor;
+#include<matrices>
 
-layout(std140) uniform Projection {
-    mat4 projMat;
-};
-uniform mat4 modelViewMat;
-
-out vec4 vColor;
-out vec2 vTexCoord;
-out vec3 vStyle;
-out vec4 vOutlineColor;
+out vec4 FragColor;
+out vec2 TexCoord;
+out vec3 Style;
+out vec4 OutlineColor;
+out vec4 FadeParams;
+out vec2 FragPos;
+out vec4 Scissor;
 
 void main() {
-    vColor = Color;
-    vTexCoord = Texture;
+    FragColor = Color;
+    TexCoord = UV0;
+    Style = Style0;
+    OutlineColor = OutlineColor0;
 
-    vStyle = aStyle;
-    vOutlineColor = aOutlineColor;
+    FadeParams = Fade0;
+    FragPos = Position.xy;
 
-    gl_Position = projMat * modelViewMat * Position;
+    Scissor = Scissor0;
+
+    gl_Position = projMat * ModelViewMat * Position;
 }

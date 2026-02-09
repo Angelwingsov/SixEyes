@@ -52,11 +52,10 @@ public class GIFImageReaderSpi extends ImageReaderSpi {
     }
 
     public boolean canDecodeInput(Object input) throws IOException {
-        if (!(input instanceof ImageInputStream)) {
+        if (!(input instanceof ImageInputStream stream)) {
             return false;
         }
 
-        ImageInputStream stream = (ImageInputStream)input;
         byte[] b = new byte[6];
         stream.mark();
         boolean full = ReaderUtil.tryReadFully(stream, b);
@@ -72,5 +71,3 @@ public class GIFImageReaderSpi extends ImageReaderSpi {
     }
 
 }
-
-

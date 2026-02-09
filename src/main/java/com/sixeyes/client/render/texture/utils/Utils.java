@@ -16,8 +16,7 @@ public class Utils {
 
     public static ByteBuffer readStream(InputStream stream) throws IOException {
         ReadableByteChannel rbChannel = Channels.newChannel(stream);
-        if (rbChannel instanceof SeekableByteChannel) {
-            SeekableByteChannel sbChannel = (SeekableByteChannel) rbChannel;
+        if (rbChannel instanceof SeekableByteChannel sbChannel) {
             return readChannel(rbChannel, (int) sbChannel.size() + 1);
         } else
             return readChannel(rbChannel, 8192);
@@ -82,5 +81,3 @@ public class Utils {
         return (byte) ((rgba >> 24) & 0xFF);
     }
 }
-
-

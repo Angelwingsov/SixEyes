@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 
 public final class GifLoaders {
-    public static Function<InputStream, GifLoader> INPUT_STREAM = inputStream -> decompileMode -> {
+    public static final Function<InputStream, GifLoader> INPUT_STREAM = inputStream -> decompileMode -> {
         ImageInputStream iis = ImageIO.createImageInputStream(inputStream);
         GifData gifData = decompileMode.gifDecompiler.decompile(iis);
         return new GLGifInfo(gifData.images.stream().map(bufferedImage -> {
@@ -38,5 +38,3 @@ public final class GifLoaders {
         }
     };
 }
-
-

@@ -8,5 +8,3 @@ public interface GifLoader {
 
     GLGifInfo load(DecompileMode decompileMode) throws Exception;
 }
-
-

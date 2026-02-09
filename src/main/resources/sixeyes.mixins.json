@@ -1,17 +1,17 @@
 {
     "required": true,
-    "package": "com.sixeyes.client.mixin",
+    "minVersion": "0.8",
+    "package": "com.sixeyes.mixin",
     "compatibilityLevel": "JAVA_21",
-    "mixins": [],
+    "priority": 1337,
+    "mixinPriority": 1337,
+    "client": [
+        "MixinLocalPlayer",
+        "MixinGameRenderer"
+    ],
+    "mixins": [
+    ],
     "injectors": {
         "defaultRequire": 1
-    },
-    "overwrites": {
-        "requireAnnotations": true
-    },
-    "client": [
-        "GameRendererMixin",
-        "IGlGpuBuffer",
-        "IProjectionMatrix2"
-    ]
+    }
 }

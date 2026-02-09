@@ -49,5 +49,3 @@ public class GLGifBuilder {
         return new GLGifBuilder();
     }
 }
-
-

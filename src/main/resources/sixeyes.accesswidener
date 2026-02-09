@@ -1,7 +1,31 @@
-accessWidener v1  named
+accessWidener v1 named
 
-accessible field net/minecraft/client/gl/Framebuffer depthAttachmentView Lcom/mojang/blaze3d/textures/GpuTextureView;
-accessible field net/minecraft/client/gl/Framebuffer depthAttachment Lcom/mojang/blaze3d/textures/GpuTexture;
-accessible field net/minecraft/client/gl/Framebuffer colorAttachmentView Lcom/mojang/blaze3d/textures/GpuTextureView;
-accessible field net/minecraft/client/gl/Framebuffer colorAttachment Lcom/mojang/blaze3d/textures/GpuTexture;
+# Render
+accessible field com/mojang/blaze3d/opengl/GlBuffer handle I
 
+accessible method net/minecraft/client/renderer/GameRenderer getFov (Lnet/minecraft/client/Camera;FZ)F
+accessible method net/minecraft/client/renderer/CachedOrthoProjectionMatrixBuffer createProjectionMatrix (FF)Lorg/joml/Matrix4f;
+
+# Client
+accessible method net/minecraft/client/multiplayer/MultiPlayerGameMode startPrediction (Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/client/multiplayer/prediction/PredictiveAction;)V
+
+accessible field net/minecraft/network/protocol/game/ServerboundMovePlayerPacket yRot F
+accessible field net/minecraft/network/protocol/game/ServerboundMovePlayerPacket xRot F
+mutable field net/minecraft/network/protocol/game/ServerboundMovePlayerPacket yRot F
+mutable field net/minecraft/network/protocol/game/ServerboundMovePlayerPacket xRot F
+
+mutable field net/minecraft/world/phys/Vec3 x D
+mutable field net/minecraft/world/phys/Vec3 y D
+mutable field net/minecraft/world/phys/Vec3 z D
+
+# Entity & Player
+accessible method net/minecraft/client/player/KeyboardInput calculateImpulse (ZZ)F
+accessible field net/minecraft/client/player/LocalPlayer wasSprinting Z
+
+accessible method net/minecraft/world/entity/Entity getInputVector (Lnet/minecraft/world/phys/Vec3;FF)Lnet/minecraft/world/phys/Vec3;
+accessible field net/minecraft/world/entity/LivingEntity noJumpDelay I
+
+accessible field net/minecraft/client/entity/ClientAvatarState walkDist F
+accessible field net/minecraft/client/entity/ClientAvatarState walkDistO F
+accessible field net/minecraft/client/entity/ClientAvatarState bobO F
+accessible field net/minecraft/client/entity/ClientAvatarState bob F

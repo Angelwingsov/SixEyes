@@ -30,5 +30,3 @@ public class TextureStorage {
         return texture;
     }
 }
-
-

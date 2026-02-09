@@ -23,5 +23,3 @@ public interface GlController {
 
     void pixelStore(int pname, int param);
 }
-
-

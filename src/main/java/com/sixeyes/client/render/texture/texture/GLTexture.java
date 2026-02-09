@@ -1,9 +1,9 @@
 package com.sixeyes.client.render.texture.texture;
 
-import com.sixeyes.client.render.texture.controller.GlController;
 import com.sixeyes.client.render.texture.GLTextureSystem;
 import com.sixeyes.client.render.texture.GlTex;
 import com.sixeyes.client.render.texture.builder.GLTextureInfo;
+import com.sixeyes.client.render.texture.controller.GlController;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
@@ -16,7 +16,7 @@ import static org.lwjgl.stb.STBImage.nstbi_image_free;
 public class GLTexture implements GlTex {
     protected int texId;
 
-    protected String name;
+    protected final String name;
     protected int width;
     protected int height;
 
@@ -164,5 +164,3 @@ public class GLTexture implements GlTex {
         return new GLTexture(name).create(glTextureInfo);
     }
 }
-
-

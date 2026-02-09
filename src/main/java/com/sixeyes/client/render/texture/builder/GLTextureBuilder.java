@@ -1,10 +1,10 @@
 package com.sixeyes.client.render.texture.builder;
 
+import com.sixeyes.client.render.texture.loader.TextureLoader;
 import com.sixeyes.client.render.texture.texture.ColorMode;
 import com.sixeyes.client.render.texture.texture.GLTexture;
 import com.sixeyes.client.render.texture.texture.TextureFiltering;
 import com.sixeyes.client.render.texture.texture.TextureWrapping;
-import com.sixeyes.client.render.texture.loader.TextureLoader;
 
 
 public class GLTextureBuilder<T> {
@@ -68,5 +68,3 @@ public class GLTextureBuilder<T> {
             throw new IllegalArgumentException(String.format("TextureWrapping in texture '%s' cannot be null.", name));
     }
 }
-
-

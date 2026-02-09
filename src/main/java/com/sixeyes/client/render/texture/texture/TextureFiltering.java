@@ -13,5 +13,3 @@ public enum TextureFiltering {
         this.id = id;
     }
 }
-
-

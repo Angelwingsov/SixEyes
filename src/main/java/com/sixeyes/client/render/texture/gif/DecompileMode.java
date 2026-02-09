@@ -13,4 +13,3 @@ public enum DecompileMode {
         this.gifDecompiler = gifDecompiler;
     }
 }
-

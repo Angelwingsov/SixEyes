@@ -1,6 +1,6 @@
 package com.sixeyes.client.render.texture.gif;
 
-import com.sixeyes.client.render.texture.*;
+import com.sixeyes.client.render.texture.GlTex;
 import com.sixeyes.client.render.texture.builder.GLGifInfo;
 import com.sixeyes.client.render.texture.texture.GLTexture;
 
@@ -89,5 +89,3 @@ public class GLGif implements GlTex {
         return new GLGif(name).create(info);
     }
 }
-
-

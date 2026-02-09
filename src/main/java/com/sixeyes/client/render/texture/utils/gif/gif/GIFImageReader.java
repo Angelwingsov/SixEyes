@@ -35,7 +35,7 @@ public class GIFImageReader extends ImageReader {
 
     int numImages = -1;
 
-    byte[] block = new byte[255];
+    final byte[] block = new byte[255];
     int blockLength = 0;
     int bitPos = 0;
     int nextByte = 0;
@@ -503,7 +503,7 @@ public class GIFImageReader extends ImageReader {
             }
 
 
-            imageStartPosition.add(Long.valueOf(stream.getStreamPosition()));
+            imageStartPosition.add(stream.getStreamPosition());
         } catch (IOException e) {
             throw new IIOException("I/O error reading header!", e);
         }
@@ -575,7 +575,7 @@ public class GIFImageReader extends ImageReader {
 
 
             Long l = imageStartPosition.get(index);
-            stream.seek(l.longValue());
+            stream.seek(l);
 
 
             while (index < imageIndex) {
@@ -1081,7 +1081,7 @@ public class GIFImageReader extends ImageReader {
             defaultPalette = new byte[size * 3];
 
             for (int i = 0; i < size; i++) {
-                defaultPalette[3 * i + 0] = r[i];
+                defaultPalette[3 * i] = r[i];
                 defaultPalette[3 * i + 1] = g[i];
                 defaultPalette[3 * i + 2] = b[i];
             }
@@ -1089,5 +1089,3 @@ public class GIFImageReader extends ImageReader {
         return defaultPalette;
     }
 }
-
-

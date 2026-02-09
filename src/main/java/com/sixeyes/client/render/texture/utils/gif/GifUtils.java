@@ -17,12 +17,12 @@ public class GifUtils {
         List<BufferedImage> copies = new ArrayList<>();
         GifData deltaData = decompileDeltas(inputStream);
         List<BufferedImage> frames = deltaData.images;
-        copies.add(frames.remove(0));
+        copies.add(frames.removeFirst());
         for (BufferedImage frame : frames) {
-            BufferedImage img = new BufferedImage(copies.get(0).getWidth(),
-                    copies.get(0).getHeight(), BufferedImage.TYPE_INT_RGB);
+            BufferedImage img = new BufferedImage(copies.getFirst().getWidth(),
+                    copies.getFirst().getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics g = img.getGraphics();
-            g.drawImage(copies.get(copies.size()-1),0,0,null);
+            g.drawImage(copies.getLast(),0,0,null);
             g.drawImage(frame,0,0,null);
             copies.add(img);
         }
@@ -38,5 +38,3 @@ public class GifUtils {
         return new GifData(frames, ((GIFImageMetadata) ir.getImageMetadata(0)).delayTime);
     }
 }
-
-

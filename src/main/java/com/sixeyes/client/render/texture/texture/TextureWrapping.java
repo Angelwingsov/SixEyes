@@ -13,5 +13,3 @@ public enum TextureWrapping {
         this.id = id;
     }
 }
-
-

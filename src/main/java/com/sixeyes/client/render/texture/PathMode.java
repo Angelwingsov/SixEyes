@@ -24,5 +24,3 @@ public enum PathMode {
         this.streamCreateFunction = streamCreateFunction;
     }
 }
-
-

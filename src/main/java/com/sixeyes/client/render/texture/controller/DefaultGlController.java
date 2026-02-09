@@ -1,6 +1,7 @@
 package com.sixeyes.client.render.texture.controller;
 
 import org.lwjgl.opengl.GL11;
+
 import java.nio.ByteBuffer;
 
 
@@ -53,5 +54,3 @@ public class DefaultGlController implements GlController {
         GL11.glPixelStorei(pname, param);
     }
 }
-
-

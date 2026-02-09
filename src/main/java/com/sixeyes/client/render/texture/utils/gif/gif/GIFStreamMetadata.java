@@ -285,5 +285,3 @@ public class GIFStreamMetadata extends GIFMetadata {
         throw new IllegalStateException("Metadata is read-only!");
     }
 }
-
-

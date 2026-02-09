@@ -1,12 +1,12 @@
 package com.sixeyes.client.render.texture.loader;
 
 import com.sixeyes.client.render.texture.builder.GLTextureInfo;
-import com.sixeyes.client.render.texture.utils.Utils;
-import org.lwjgl.stb.STBImage;
-import org.lwjgl.system.MemoryUtil;
 import com.sixeyes.client.render.texture.texture.ColorMode;
 import com.sixeyes.client.render.texture.texture.TextureFiltering;
 import com.sixeyes.client.render.texture.texture.TextureWrapping;
+import com.sixeyes.client.render.texture.utils.Utils;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryUtil;
 
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 public final class TextureLoaders {
-    public static TextureLoader<InputStream> INPUT_STREAM = new TextureLoader<InputStream>() {
+    public static final TextureLoader<InputStream> INPUT_STREAM = new TextureLoader<InputStream>() {
         @Override
         public GLTextureInfo load(InputStream path, ColorMode colorMode, TextureFiltering filtering, TextureWrapping wrapping) throws Exception {
             ByteBuffer buffer = Utils.readStream(path);
@@ -48,7 +48,7 @@ public final class TextureLoaders {
             return INPUT_STREAM.load(path.openStream(), colorMode, filtering, wrapping);
         }
     };
-    public static TextureLoader<BufferedImage> BUFFERED_IMAGE = new TextureLoader<BufferedImage>() {
+    public static final TextureLoader<BufferedImage> BUFFERED_IMAGE = new TextureLoader<BufferedImage>() {
         @Override
         public GLTextureInfo load(BufferedImage path, ColorMode colorMode, TextureFiltering filtering, TextureWrapping wrapping) throws Exception {
             GLTextureInfo glTextureInfo;
@@ -75,5 +75,3 @@ public final class TextureLoaders {
         }
     };
 }
-
-

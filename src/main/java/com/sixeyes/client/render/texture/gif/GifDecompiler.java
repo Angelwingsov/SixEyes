@@ -9,5 +9,3 @@ public interface GifDecompiler {
 
     GifData decompile(ImageInputStream iis) throws Exception;
 }
-
-

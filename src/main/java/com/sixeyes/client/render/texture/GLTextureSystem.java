@@ -33,5 +33,3 @@ public class GLTextureSystem {
         ALL_TEXTURES.clear();
     }
 }
-
-

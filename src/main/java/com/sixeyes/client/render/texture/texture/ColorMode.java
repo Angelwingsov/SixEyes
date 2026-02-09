@@ -13,4 +13,3 @@ public enum ColorMode {
         this.glId = glId;
     }
 }
-

@@ -15,5 +15,3 @@ public interface GlTex {
 
     int getTexId();
 }
-
-

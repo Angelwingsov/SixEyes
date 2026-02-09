@@ -36,9 +36,8 @@ abstract class GIFMetadata extends IIOMetadata {
                       " attribute "+name+"!");
             }
             boolean validValue = false;
-            int len = range.length;
-            for (int i = 0; i < len; i++) {
-                if (value.equals(range[i])) {
+            for (String s : range) {
+                if (value.equals(s)) {
                     validValue = true;
                     break;
                 }
@@ -268,5 +267,3 @@ abstract class GIFMetadata extends IIOMetadata {
    protected abstract void mergeStandardTree(Node root)
       throws IIOInvalidTreeException;
 }
-
-
