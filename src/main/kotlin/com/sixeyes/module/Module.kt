@@ -1,13 +1,13 @@
 package com.sixeyes.module
 
 import com.sixeyes.client.extensions.Category
-import com.sixeyes.client.interfaces.Toggable
+import com.sixeyes.client.interfaces.IToggable
 import com.sixeyes.event.EventManager
 
 open class Module(
     val name: String,
     val category: Category
-) : Toggable {
+) : IToggable {
     private var enabled = false
 
     override fun isEnabled(): Boolean {

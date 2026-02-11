@@ -1,7 +1,9 @@
-package com.sixeyes.client.services
+package com.sixeyes.client.listener.listeners
 
 import com.mojang.blaze3d.opengl.GlStateManager
 import com.sixeyes.client.extensions.mc
+import com.sixeyes.client.interfaces.IRenderable
+import com.sixeyes.client.listener.Listener
 import com.sixeyes.client.render.main.ChromaLoaders
 import com.sixeyes.client.render.main.ChromaRenderer
 import com.sixeyes.client.render.main.blend.DstFactor
@@ -13,22 +15,31 @@ import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl
 import com.sixeyes.client.util.render.engine.controls.MatrixControl
+import com.sixeyes.event.EventManager
+import com.sixeyes.event.events.OverlayRenderEvent
 
-object RenderService {
-    var init = false
+object RenderListener : Listener() {
+    var loaded = false
+
+    override fun init() {
+        registerShaderLibs()
+    }
 
     fun hookRender(partialTicks: Float, vararg pipelines: ClientRenderPipeline) {
         if (mc.player == null || mc.level == null) return
 
-        if (!init) {
+        if (!loaded) {
             LayerControl.loadShaders()
             LayerControl.loadRender()
 
             TextureLoader.load()
 
-            init = true
+            loaded = true
             return
         }
+
+        val mouseX = InputListener.mouseX()
+        val mouseY = InputListener.mouseY()
 
         MatrixControl.unscaledProjection()
         MatrixControl.reset()
@@ -37,11 +48,17 @@ object RenderService {
         ChromaRenderer.bindMainFramebuffer()
         ChromaRenderer.applyBlend(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ONE, DstFactor.ZERO)
 
-        // post render2dEvent
+        val overlayRenderEvent = OverlayRenderEvent().apply {
+            put(OverlayRenderEvent.PARTIAL_TICKS, partialTicks)
+            put(OverlayRenderEvent.MOUSE_X, mouseX)
+            put(OverlayRenderEvent.MOUSE_Y, mouseY)
+        }
 
-        //if (mc.screen is ScreenClickGui) {
-        //    // render
-        //}
+        EventManager.post(overlayRenderEvent)
+
+        if (mc.screen is IRenderable) {
+            (mc.screen as IRenderable).render(mouseX, mouseY)
+        }
 
         LayerControl.flushPipelines(*pipelines)
         MatrixControl.scaledProjection()
@@ -49,7 +66,6 @@ object RenderService {
 
     private fun registerShaderLibs() {
         GlobalChromaCompiler.registerShaderLibraries(
-            registerShaderLib("math_utils"),
             registerShaderLib("shapes"),
             registerShaderLib("matrices"),
             registerShaderLib("scissor_check")

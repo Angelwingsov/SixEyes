@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinLocalPlayer {
     @Inject(method = "tick", at = @At("HEAD"))
     public void tickHook(CallbackInfo ci) {
-        EventManager.INSTANCE.post(PlayerUpdateEvent.INSTANCE);
+        EventManager.INSTANCE.post(new PlayerUpdateEvent());
     }
 }

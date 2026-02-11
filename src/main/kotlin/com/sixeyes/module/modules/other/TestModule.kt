@@ -1,4 +1,4 @@
-package com.sixeyes.module.modules
+package com.sixeyes.module.modules.other
 
 import com.sixeyes.client.extensions.OTHER
 import com.sixeyes.event.events.PlayerUpdateEvent

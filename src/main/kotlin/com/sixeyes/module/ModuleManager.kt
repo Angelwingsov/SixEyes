@@ -1,9 +1,9 @@
 package com.sixeyes.module
 
-import com.sixeyes.client.interfaces.Loadable
-import com.sixeyes.module.modules.TestModule
+import com.sixeyes.client.interfaces.ILoadable
+import com.sixeyes.module.modules.other.TestModule
 
-object ModuleManager : Loadable {
+object ModuleManager : ILoadable {
     val modules: MutableList<Module> = ArrayList()
 
     override fun load() {
@@ -13,6 +13,6 @@ object ModuleManager : Loadable {
     }
 
     private fun add(vararg module: Module) {
-        modules.addAll(modules)
+        modules.addAll(module)
     }
 }

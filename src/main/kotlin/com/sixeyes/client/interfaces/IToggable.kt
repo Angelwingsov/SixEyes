@@ -1,6 +1,6 @@
 package com.sixeyes.client.interfaces
 
-interface Toggable {
+interface IToggable {
     fun isEnabled(): Boolean
     fun setEnabled(value: Boolean)
     fun toggle()

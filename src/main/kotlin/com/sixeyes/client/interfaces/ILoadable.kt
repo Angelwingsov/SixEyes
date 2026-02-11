@@ -1,5 +1,5 @@
 package com.sixeyes.client.interfaces
 
-interface Loadable {
+interface ILoadable {
     fun load()
 }
