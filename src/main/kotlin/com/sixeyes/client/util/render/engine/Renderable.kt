@@ -27,11 +27,11 @@ abstract class Renderable {
 
     var glProgram: GlProgram? = null
 
-    fun isBatchCompatible(oldState: Any?, newState: Any?): Boolean {
+    open fun isBatchCompatible(oldState: Any?, newState: Any?): Boolean {
         return oldState == newState
     }
 
-    fun renderBatch(mesh: IMesh?, state: Any?) {
+    open fun renderBatch(mesh: IMesh?, state: Any?) {
         setGlobalProgram(glProgram)
         initMatrix()
         ChromaRenderer.draw(mesh)
@@ -49,7 +49,7 @@ abstract class Renderable {
                 ShaderType.Vertex
             )
             .shader(
-                ChromaLoaders.IN_JAR.createGlslFileEntry("$name-fragment", "$SHADER_CORE_PATH$fsh.vsh"),
+                ChromaLoaders.IN_JAR.createGlslFileEntry("$name-fragment", "$SHADER_CORE_PATH$fsh.fsh"),
                 ShaderType.Fragment
             )
     }

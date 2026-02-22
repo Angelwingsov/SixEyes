@@ -1,14 +1,23 @@
 package com.sixeyes.module
 
 import com.sixeyes.client.interfaces.ILoadable
-import com.sixeyes.module.modules.other.TestModule
+import com.sixeyes.module.modules.render.TestRenderModule
 
 object ModuleManager : ILoadable {
     val modules: MutableList<Module> = ArrayList()
 
     override fun load() {
         add(
-            TestModule
+            // Combat
+
+            // Movement
+
+            // Player
+
+            // Other
+
+            // Render
+            TestRenderModule
         )
     }
 

@@ -196,4 +196,34 @@ public class MeshBuilder implements IMeshBuilder<MeshBuilder, Mesh> {
 
         return this;
     }
+
+    public MeshBuilder element2f(VertexElement element, float v0, float v1) {
+        long pointer = beginElement(element);
+        if (pointer != -1L) {
+            MemoryUtil.memPutFloat(pointer, v0);
+            MemoryUtil.memPutFloat(pointer + 4L, v1);
+        }
+        return this;
+    }
+
+    public MeshBuilder element3f(VertexElement element, float v0, float v1, float v2) {
+        long pointer = beginElement(element);
+        if (pointer != -1L) {
+            MemoryUtil.memPutFloat(pointer, v0);
+            MemoryUtil.memPutFloat(pointer + 4L, v1);
+            MemoryUtil.memPutFloat(pointer + 8L, v2);
+        }
+        return this;
+    }
+
+    public MeshBuilder element4f(VertexElement element, float v0, float v1, float v2, float v3) {
+        long pointer = beginElement(element);
+        if (pointer != -1L) {
+            MemoryUtil.memPutFloat(pointer, v0);
+            MemoryUtil.memPutFloat(pointer + 4L, v1);
+            MemoryUtil.memPutFloat(pointer + 8L, v2);
+            MemoryUtil.memPutFloat(pointer + 12L, v3);
+        }
+        return this;
+    }
 }
