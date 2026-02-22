@@ -14,6 +14,7 @@ Using third-party modifications may violate the terms of service of some Minecra
 ## Contributors
 
 *   Angelwingsov - Initial development
+*   FreakCartel
 *   remila.x - Besties
 *   Reneko 
 *   Skawz
