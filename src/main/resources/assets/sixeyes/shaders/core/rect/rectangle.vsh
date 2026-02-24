@@ -1,12 +1,13 @@
 #version 330 core
 
-#include<shapes>
+#include<math_utils>
 
 in vec4 Position;
 in vec4 TopRightColor0;
 in vec4 TopLeftColor0;
 in vec4 BottomRightColor0;
 in vec4 BottomLeftColor0;
+in vec2 LocalCoord0;
 in vec2 UV0;
 in vec2 Size0;
 in vec4 Radius0;
@@ -59,6 +60,6 @@ void main() {
 
     Scissor = Scissor0;
 
-    fragCoord = rvertexcoord(gl_VertexID);
+    fragCoord = LocalCoord0;
     gl_Position = projMat * ModelViewMat * Position;
 }

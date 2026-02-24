@@ -6,7 +6,7 @@ import com.sixeyes.client.render.main.ChromaRenderer
 import com.sixeyes.client.render.main.scissor.ScissorRect
 
 object ScissorUtil {
-    private val NO_SCISSOR = Vector4f(-100f, -100f, 100f, 100f)
+    private val NO_SCISSOR = Vector4f(-100000f, 0f, 0f, 0f)
     private val CACHE_SCISSOR = Vector4f(-1f)
 
     fun start(x: Float, y: Float, width: Float, height: Float) {
@@ -23,6 +23,9 @@ object ScissorUtil {
         }
 
         val rect = ChromaRenderer.scissorStack.current
+        if (rect.width() <= 0f || rect.height() <= 0f) {
+            return NO_SCISSOR
+        }
 
         val scale = mc.window.guiScale.toFloat()
         val h = mc.window.height.toFloat()

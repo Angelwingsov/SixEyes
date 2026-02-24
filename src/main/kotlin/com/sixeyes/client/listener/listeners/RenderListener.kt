@@ -13,6 +13,7 @@ import com.sixeyes.client.render.main.compile.GlShaderLibrary
 import com.sixeyes.client.render.main.compile.GlobalChromaCompiler
 import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.client.util.render.font.MsdfTextRenderer
+import com.sixeyes.client.util.render.rect.RectRenderer
 import com.sixeyes.client.util.render.TextureLoader
 import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
@@ -38,7 +39,7 @@ object RenderListener : Listener() {
         init()
 
         if (!loaded) {
-            LayerControl.loadShaders(MsdfTextRenderer)
+            LayerControl.loadShaders(MsdfTextRenderer, RectRenderer)
             LayerControl.loadRender()
 
             TextureLoader.load()
