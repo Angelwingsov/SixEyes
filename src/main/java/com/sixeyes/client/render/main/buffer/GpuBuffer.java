@@ -40,6 +40,7 @@ public class GpuBuffer implements Bindable, AutoCloseable {
             this.capacity = Math.max(bytes, Math.max(this.capacity * 2, 65536));
             GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
         } else {
+            GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
         }
         GL15.glBufferSubData(this.target.glId, 0, data);
         GL15.glBindBuffer(this.target.glId, 0);
