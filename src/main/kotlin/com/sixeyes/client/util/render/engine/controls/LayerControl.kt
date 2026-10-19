@@ -21,7 +21,11 @@ object LayerControl {
     }
 
     fun flushPipelines(vararg pipelines: ClientRenderPipeline) {
-        dispatcher.flushPipelines(*pipelines)
+        dispatcher.flushPipelinesArray(pipelines)
+    }
+
+    fun flushPipelinesArray(pipelines: Array<out ClientRenderPipeline>) {
+        dispatcher.flushPipelinesArray(pipelines)
     }
     fun getBuilder(
         pipeline: ClientRenderPipeline,

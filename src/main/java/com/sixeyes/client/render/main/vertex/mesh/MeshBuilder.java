@@ -78,10 +78,22 @@ public class MeshBuilder implements IMeshBuilder<MeshBuilder, Mesh> {
         this.ensureBuilding();
         this.endVertex();
         Mesh builtBuffer = this.build();
-        bufferAllocator.close();
+        if (this.closeAllocatorAfterBuild) {
+            this.bufferAllocator.close();
+        }
         this.closed = true;
         this.vertexPointer = -1L;
         return builtBuffer;
+    }
+
+    public void reset() {
+        this.closed = false;
+        this.vertexCount = 0;
+        this.vertexPointer = -1L;
+        this.currentMask = 0;
+        if (this.bufferAllocator != null) {
+            this.bufferAllocator.clear();
+        }
     }
 
     @Override
@@ -113,6 +125,7 @@ public class MeshBuilder implements IMeshBuilder<MeshBuilder, Mesh> {
             } else {
                 int i = this.drawMode.indexCountFunction().apply(this.vertexCount);
                 return new Mesh(closeableBuffer.byteBuffer(), this.vertexFormat, this.vertexCount, i, this.drawMode, () -> {
+                    closeableBuffer.close();
                     if (this.closeAllocatorAfterBuild)
                         this.bufferAllocator.close();
                 });
@@ -194,6 +207,14 @@ public class MeshBuilder implements IMeshBuilder<MeshBuilder, Mesh> {
         if (pointer != -1L)
             elementType.uploadConsumer().accept(pointer, values);
 
+        return this;
+    }
+
+    public MeshBuilder element1f(VertexElement element, float v0) {
+        long pointer = beginElement(element);
+        if (pointer != -1L) {
+            MemoryUtil.memPutFloat(pointer, v0);
+        }
         return this;
     }
 

@@ -50,6 +50,16 @@ public class GlProgram implements Bindable, Compilable, Closeable {
             if (uniform instanceof SamplerUniform sampler)
                 samplers.add(sampler);
         }
+
+        if (!samplers.isEmpty()) {
+            GL20.glUseProgram(this.id);
+            for (SamplerUniform sampler : samplers) {
+                if (sampler.getLocation() != -1) {
+                    GL20.glUniform1i(sampler.getLocation(), sampler.samplerId);
+                }
+            }
+            GL20.glUseProgram(0);
+        }
     }
 
     @Override
@@ -63,6 +73,9 @@ public class GlProgram implements Bindable, Compilable, Closeable {
 
     @Override
     public void close() {
+        if (ACTIVE_PROGRAM == this) {
+            unbindActive();
+        }
         GL20.glDeleteProgram(id);
         this.uniformsByName.clear();
         this.samplers.clear();
@@ -70,23 +83,33 @@ public class GlProgram implements Bindable, Compilable, Closeable {
 
     @Override
     public void bind() {
-        if (ACTIVE_PROGRAM != this) GL20.glUseProgram(id);
-
-        if (!this.updatedUniforms.isEmpty()) {
-            for (GlUniform glUniform : this.updatedUniforms)
-                glUniform.upload();
-            this.updatedUniforms.clear();
+        if (ACTIVE_PROGRAM != this) {
+            GL20.glUseProgram(id);
+            ACTIVE_PROGRAM = this;
+            com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics.INSTANCE.onProgramSwitch();
         }
 
-        ACTIVE_PROGRAM = this;
+        if (!this.updatedUniforms.isEmpty()) {
+            for (int i = 0; i < this.updatedUniforms.size(); i++) {
+                this.updatedUniforms.get(i).upload();
+            }
+            this.updatedUniforms.clear();
+        }
     }
 
-    
+    public static void unbindActive() {
+        if (ACTIVE_PROGRAM != null) {
+            GL20.glUseProgram(0);
+            ACTIVE_PROGRAM = null;
+        }
+    }
+
     @Override
     public void unbind() {
-        if (ACTIVE_PROGRAM == this) GL20.glUseProgram(0);
-
-        ACTIVE_PROGRAM = null;
+        if (ACTIVE_PROGRAM == this) {
+            GL20.glUseProgram(0);
+            ACTIVE_PROGRAM = null;
+        }
     }
 
     public void addUpdatedUniform(GlUniform uniform) {

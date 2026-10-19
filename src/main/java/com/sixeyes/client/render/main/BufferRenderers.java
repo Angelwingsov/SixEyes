@@ -14,6 +14,7 @@ import com.mojang.blaze3d.opengl.GlDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 
@@ -53,6 +54,7 @@ public final class BufferRenderers {
         DrawMode drawMode = mesh.getDrawMode();
 
         if (vertexCount > 0) {
+            RenderMetrics.INSTANCE.onDrawCall(vertexCount, indexCount);
             VertexFormatManager.uploadFormatToBuffer(mesh.getVertexBuffer(), mesh.getVertexFormat());
 
             if (drawMode.useIndexBuffer()) {

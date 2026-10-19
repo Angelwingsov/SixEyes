@@ -9,6 +9,7 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.sixeyes.client.render.main.blend.DstFactor;
 import com.sixeyes.client.render.main.blend.SrcFactor;
+import com.sixeyes.client.render.main.buffer.GpuBufferPool;
 import com.sixeyes.client.render.main.program.GlProgram;
 import com.sixeyes.client.render.main.program.GlProgramSnippet;
 import com.sixeyes.client.render.main.program.uniform.UniformType;
@@ -145,41 +146,53 @@ public class ChromaRenderer {
         }
     }
     
-    private static MeshBuilder getPooledMeshBuilder(DrawMode drawMode, VertexFormat vertexFormat) {
+    public static MeshBuilder acquireMeshBuilder(DrawMode drawMode, VertexFormat vertexFormat) {
         MeshBuilder meshBuilder = MESH_BUILDER_POOL.poll();
         if (meshBuilder == null) {
             ByteBufferBuilder buffer = getPooledBuffer(DEFAULT_BUFFER_SIZE);
             meshBuilder = new MeshBuilder(buffer, drawMode, vertexFormat, false);
         } else {
-            ByteBufferBuilder buffer = getPooledBuffer(DEFAULT_BUFFER_SIZE);
+            ByteBufferBuilder buffer = meshBuilder.bufferAllocator;
+            try {
+                buffer.clear();
+                bufferPoolHits++;
+            } catch (Exception e) {
+                buffer = getPooledBuffer(DEFAULT_BUFFER_SIZE);
+            }
             meshBuilder.set(buffer, drawMode, vertexFormat, false);
         }
         return meshBuilder;
     }
     
-    private static void returnMeshBuilder(MeshBuilder meshBuilder) {
-        if (meshBuilder != null && MESH_BUILDER_POOL.size() < 8) {
-            MESH_BUILDER_POOL.offer(meshBuilder);
+    public static void releaseMeshBuilder(MeshBuilder meshBuilder) {
+        if (meshBuilder != null && MESH_BUILDER_POOL.size() < 16) {
+            try {
+                meshBuilder.bufferAllocator.clear();
+                MESH_BUILDER_POOL.offer(meshBuilder);
+            } catch (Exception ignored) {
+            }
+        } else if (meshBuilder != null) {
+            try {
+                meshBuilder.bufferAllocator.close();
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static Mesh createMesh(DrawMode drawMode, VertexFormat vertexFormat, Consumer<MeshBuilder> buildConsumer) {
-        MeshBuilder meshBuilder = getPooledMeshBuilder(drawMode, vertexFormat);
-        ByteBufferBuilder buffer = meshBuilder.bufferAllocator;
+        MeshBuilder meshBuilder = acquireMeshBuilder(drawMode, vertexFormat);
         try {
             buildConsumer.accept(meshBuilder);
             Mesh result = meshBuilder.buildNullable();
             if (result != null) {
-                returnMeshBuilder(meshBuilder);
+                releaseMeshBuilder(meshBuilder);
                 return result;
             }
         } catch (Exception e) {
-            returnBuffer(buffer);
-            returnMeshBuilder(meshBuilder);
+            releaseMeshBuilder(meshBuilder);
             throw e;
         }
-        returnBuffer(buffer);
-        returnMeshBuilder(meshBuilder);
+        releaseMeshBuilder(meshBuilder);
         return null;
     }
     
@@ -216,15 +229,23 @@ public class ChromaRenderer {
     }
 
     public static <T> void draw(BiConsumer<T, Boolean> renderConsumer, T builtBuffer, boolean close) {
-        globalProgram.bind();
+        if (globalProgram != null) {
+            globalProgram.bind();
+        }
         renderConsumer.accept(builtBuffer, close);
-        globalProgram.unbind();
+    }
+
+    public static void endFrame() {
+        GlProgram.unbindActive();
+        org.lwjgl.opengl.GL30.glBindVertexArray(0);
     }
 
     public static void cleanup() {
         BUFFER_POOL.clear();
         MESH_BUILDER_POOL.clear();
+        GpuBufferPool.cleanup();
         bufferPoolHits = 0;
         bufferPoolMisses = 0;
+        endFrame();
     }
 }

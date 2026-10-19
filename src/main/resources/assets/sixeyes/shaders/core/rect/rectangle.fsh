@@ -3,7 +3,7 @@
 #include<math_utils>
 #include<scissor_check>
 
-precision lowp float;
+precision mediump float;
 
 in vec4 TopRightColor;
 in vec4 TopLeftColor;
@@ -36,9 +36,13 @@ vec4 SuperKuniOtDonichki(vec2 uv) {
 void main() {
     applyScissor(Scissor, gl_FragCoord.xy);
 
+    float dist = sd_dist(Size, fragCoord, Radius, Mode);
+    if (dist > 1.0 && BorderWidth <= 0.0) {
+        discard;
+    }
+
     int sex = int(round(Type));
     vec4 gradientColor = SuperKuniOtDonichki(fragCoord);
-    float dist = sd_dist(Size, fragCoord, Radius, Mode);
 
     if (sex == 0) { // RECT (GRADIENT & BASIC)
         fragColor = sd_render(gradientColor, BorderColor, dist, BorderWidth);

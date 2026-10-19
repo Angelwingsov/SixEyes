@@ -19,6 +19,7 @@ import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl
 import com.sixeyes.client.util.render.engine.controls.MatrixControl
+import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics
 import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.OverlayRenderEvent
 import java.lang.reflect.Field
@@ -29,12 +30,28 @@ object RenderListener : Listener() {
     private var chromaInitialized = false
     private var glBufferHandleField: Field? = null
 
+    @JvmField
+    val ALL_GUI_PIPELINES = arrayOf(
+        ClientRenderPipeline.LOW, ClientRenderPipeline.MEDIUM, ClientRenderPipeline.HIGH,
+        ClientRenderPipeline.HUD_RECT, ClientRenderPipeline.HUD_SPECIAL, ClientRenderPipeline.HUD_TEXT,
+        ClientRenderPipeline.GUI_RECT, ClientRenderPipeline.GUI_SPECIAL, ClientRenderPipeline.GUI_TEXT,
+        ClientRenderPipeline.WINDOW_RECT, ClientRenderPipeline.WINDOW_SPECIAL, ClientRenderPipeline.WINDOW_TEXT,
+        ClientRenderPipeline.POPUP_RECT, ClientRenderPipeline.POPUP_SPECIAL, ClientRenderPipeline.POPUP_TEXT,
+        ClientRenderPipeline.FIRST_RECT, ClientRenderPipeline.FIRST_SPECIAL, ClientRenderPipeline.FIRST_TEXT
+    )
+
+    private val cachedOverlayEvent = OverlayRenderEvent()
+
     override fun init() {
         ensureChromaInitialized()
         ensureShaderLibsRegistered()
     }
 
     fun hookRender(partialTicks: Float, vararg pipelines: ClientRenderPipeline) {
+        hookRenderArray(partialTicks, pipelines)
+    }
+
+    fun hookRenderArray(partialTicks: Float, pipelines: Array<out ClientRenderPipeline>) {
         if (mc.player == null || mc.level == null) return
         init()
 
@@ -52,6 +69,8 @@ object RenderListener : Listener() {
         val mouseX = InputListener.mouseX()
         val mouseY = InputListener.mouseY()
 
+        RenderMetrics.onFrameStart()
+
         MatrixControl.unscaledProjection()
         MatrixControl.reset()
         GlStateManager._disableDepthTest()
@@ -59,7 +78,7 @@ object RenderListener : Listener() {
         ChromaRenderer.bindMainFramebuffer()
         ChromaRenderer.applyBlend(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ONE, DstFactor.ZERO)
 
-        val overlayRenderEvent = OverlayRenderEvent().apply {
+        val overlayRenderEvent = cachedOverlayEvent.apply {
             put(OverlayRenderEvent.PARTIAL_TICKS, partialTicks)
             put(OverlayRenderEvent.MOUSE_X, mouseX)
             put(OverlayRenderEvent.MOUSE_Y, mouseY)
@@ -71,8 +90,9 @@ object RenderListener : Listener() {
             (mc.screen as IRenderable).render(mouseX, mouseY)
         }
 
-        LayerControl.flushPipelines(*pipelines)
-        MatrixControl.scaledProjection()
+        LayerControl.flushPipelinesArray(pipelines)
+        ChromaRenderer.endFrame()
+        GlStateManager._enableDepthTest()
     }
 
     private fun registerShaderLibs() {

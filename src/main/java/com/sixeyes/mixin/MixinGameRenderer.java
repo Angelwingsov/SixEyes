@@ -14,13 +14,9 @@ import static com.sixeyes.client.util.render.engine.controls.ClientRenderPipelin
 public class MixinGameRenderer {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V", shift = At.Shift.AFTER))
     public void renderGuiPipelines(DeltaTracker tickCounter, boolean tick, CallbackInfo ci) {
-        RenderListener.INSTANCE.hookRender(tickCounter.getGameTimeDeltaPartialTick(false),
-                LOW, MEDIUM, HIGH,
-                HUD_RECT, HUD_SPECIAL, HUD_TEXT,
-                GUI_RECT, GUI_SPECIAL, GUI_TEXT,
-                WINDOW_RECT, WINDOW_SPECIAL, WINDOW_TEXT,
-                POPUP_RECT, POPUP_SPECIAL, POPUP_TEXT,
-                FIRST_RECT, FIRST_SPECIAL, FIRST_TEXT
+        RenderListener.INSTANCE.hookRenderArray(
+                tickCounter.getGameTimeDeltaPartialTick(false),
+                RenderListener.ALL_GUI_PIPELINES
         );
     }
 }

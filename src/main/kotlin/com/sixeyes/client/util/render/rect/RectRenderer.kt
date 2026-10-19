@@ -9,13 +9,11 @@ import com.sixeyes.client.render.main.vertex.element.VertexElementType
 import com.sixeyes.client.render.main.vertex.format.VertexFormat
 import com.sixeyes.client.render.main.vertex.mesh.IMesh
 import com.sixeyes.client.render.main.vertex.mesh.MeshBuilder
-import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.ScissorUtil
 import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl
 import org.joml.Matrix4f
-import org.joml.Vector4f
 
 object RectRenderer : Renderable() {
     private data class RectBatchState(
@@ -79,6 +77,8 @@ object RectRenderer : Renderable() {
         ChromaRenderer.draw(mesh)
     }
 
+    private val BASIC_BATCH_STATE = RectBatchState(RectType.BASIC, 0)
+
     fun emit(
         matrix: Matrix4f,
         x: Float,
@@ -91,143 +91,118 @@ object RectRenderer : Renderable() {
         if (width <= 0f || height <= 0f) return
         if (style.type == RectType.TEXTURE && style.textureId <= 0) return
 
-        val state = RectBatchState(style.type, if (style.type == RectType.TEXTURE) style.textureId else 0)
+        val state = if (style.type == RectType.BASIC) BASIC_BATCH_STATE else RectBatchState(style.type, style.textureId)
         val builder = LayerControl.getBuilder(pipeline, this, state) ?: return
 
         val scissor = ScissorUtil.getCurrentScissorValues()
-        val normalized = normalizeStyle(style, width, height)
-        val quad = buildQuad(x, y, width, height, normalized.uv)
+        val radiusLimit = (if (width < height) width else height) * 0.5f
+        val radiusTl = style.corners.topLeft.coerceIn(0f, radiusLimit)
+        val radiusTr = style.corners.topRight.coerceIn(0f, radiusLimit)
+        val radiusBr = style.corners.bottomRight.coerceIn(0f, radiusLimit)
+        val radiusBl = style.corners.bottomLeft.coerceIn(0f, radiusLimit)
+        val mix = style.mix.coerceIn(0f, 1f)
+        val alpha = style.alpha.coerceIn(0f, 1f)
+        val mode = style.mode
+        val borderWidth = style.border.width.coerceAtLeast(0f)
+        val borderColor = style.border.color
+        val typeId = style.type.id
 
-        for (vertex in quad) {
-            emitVertex(
-                builder = builder,
-                matrix = matrix,
-                x = vertex.x,
-                y = vertex.y,
-                localX = vertex.localX,
-                localY = vertex.localY,
-                u = vertex.u,
-                v = vertex.v,
-                width = width,
-                height = height,
-                colors = normalized.colors,
-                radiusTl = normalized.radiusTl,
-                radiusTr = normalized.radiusTr,
-                radiusBr = normalized.radiusBr,
-                radiusBl = normalized.radiusBl,
-                mix = normalized.mix,
-                alpha = normalized.alpha,
-                mode = normalized.mode,
-                borderWidth = normalized.borderWidth,
-                borderColor = normalized.borderColor,
-                type = normalized.typeId,
-                scissor = scissor
-            )
-        }
+        val colors = style.colors
+        val trR = colors.topRight.r / 255f
+        val trG = colors.topRight.g / 255f
+        val trB = colors.topRight.b / 255f
+        val trA = colors.topRight.a / 255f
+
+        val tlR = colors.topLeft.r / 255f
+        val tlG = colors.topLeft.g / 255f
+        val tlB = colors.topLeft.b / 255f
+        val tlA = colors.topLeft.a / 255f
+
+        val brR = colors.bottomRight.r / 255f
+        val brG = colors.bottomRight.g / 255f
+        val brB = colors.bottomRight.b / 255f
+        val brA = colors.bottomRight.a / 255f
+
+        val blR = colors.bottomLeft.r / 255f
+        val blG = colors.bottomLeft.g / 255f
+        val blB = colors.bottomLeft.b / 255f
+        val blA = colors.bottomLeft.a / 255f
+
+        val bcR = borderColor.r / 255f
+        val bcG = borderColor.g / 255f
+        val bcB = borderColor.b / 255f
+        val bcA = borderColor.a / 255f
+
+        val uv = style.uv
+        val u0 = uv.u0
+        val v0 = uv.v0
+        val u1 = uv.u1
+        val v1 = uv.v1
+
+        val sx = scissor.x
+        val sy = scissor.y
+        val sz = scissor.z
+        val sw = scissor.w
+
+        val x2 = x + width
+        val y2 = y + height
+        
+        emitVertexDirect(builder, matrix, x, y, 0f, 0f, u0, v0, width, height,
+            trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
+            radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
+        
+        emitVertexDirect(builder, matrix, x, y2, 0f, 1f, u0, v1, width, height,
+            trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
+            radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
+        
+        emitVertexDirect(builder, matrix, x2, y2, 1f, 1f, u1, v1, width, height,
+            trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
+            radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
+        
+        emitVertexDirect(builder, matrix, x2, y, 1f, 0f, u1, v0, width, height,
+            trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
+            radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
     }
 
-    private fun buildQuad(x: Float, y: Float, width: Float, height: Float, uv: RectUv): Array<QuadVertex> {
-        return arrayOf(
-            QuadVertex(x, y, 0f, 0f, uv.u0, uv.v0),
-            QuadVertex(x, y + height, 0f, 1f, uv.u0, uv.v1),
-            QuadVertex(x + width, y + height, 1f, 1f, uv.u1, uv.v1),
-            QuadVertex(x + width, y, 1f, 0f, uv.u1, uv.v0)
-        )
-    }
-
-    private fun normalizeStyle(style: RectStyle, width: Float, height: Float): NormalizedRectStyle {
-        val radiusLimit = (kotlin.math.min(width, height) * 0.5f).coerceAtLeast(0f)
-        return NormalizedRectStyle(
-            colors = style.colors,
-            uv = style.uv,
-            radiusTl = style.corners.topLeft.coerceIn(0f, radiusLimit),
-            radiusTr = style.corners.topRight.coerceIn(0f, radiusLimit),
-            radiusBr = style.corners.bottomRight.coerceIn(0f, radiusLimit),
-            radiusBl = style.corners.bottomLeft.coerceIn(0f, radiusLimit),
-            mix = style.mix.coerceIn(0f, 1f),
-            alpha = style.alpha.coerceIn(0f, 1f),
-            mode = style.mode,
-            borderWidth = style.border.width.coerceAtLeast(0f),
-            borderColor = style.border.color,
-            typeId = style.type.id
-        )
-    }
-
-    private data class NormalizedRectStyle(
-        val colors: RectColors,
-        val uv: RectUv,
-        val radiusTl: Float,
-        val radiusTr: Float,
-        val radiusBr: Float,
-        val radiusBl: Float,
-        val mix: Float,
-        val alpha: Float,
-        val mode: Float,
-        val borderWidth: Float,
-        val borderColor: Color4b,
-        val typeId: Float
-    )
-
-    private data class QuadVertex(
-        val x: Float,
-        val y: Float,
-        val localX: Float,
-        val localY: Float,
-        val u: Float,
-        val v: Float
-    )
-
-    private fun emitVertex(
+    private fun emitVertexDirect(
         builder: MeshBuilder,
         matrix: Matrix4f,
-        x: Float,
-        y: Float,
-        localX: Float,
-        localY: Float,
-        u: Float,
-        v: Float,
-        width: Float,
-        height: Float,
-        colors: RectColors,
-        radiusTl: Float,
-        radiusTr: Float,
-        radiusBr: Float,
-        radiusBl: Float,
-        mix: Float,
-        alpha: Float,
-        mode: Float,
-        borderWidth: Float,
-        borderColor: Color4b,
+        x: Float, y: Float,
+        localX: Float, localY: Float,
+        u: Float, v: Float,
+        width: Float, height: Float,
+        trR: Float, trG: Float, trB: Float, trA: Float,
+        tlR: Float, tlG: Float, tlB: Float, tlA: Float,
+        brR: Float, brG: Float, brB: Float, brA: Float,
+        blR: Float, blG: Float, blB: Float, blA: Float,
+        radiusTl: Float, radiusTr: Float, radiusBr: Float, radiusBl: Float,
+        mix: Float, alpha: Float, mode: Float, borderWidth: Float,
+        bcR: Float, bcG: Float, bcB: Float, bcA: Float,
         type: Float,
-        scissor: Vector4f
+        sx: Float, sy: Float, sz: Float, sw: Float
     ) {
         builder.vertex(matrix, x, y, 0f)
-            .element4f(TOP_RIGHT_COLOR, colors.topRight.rf(), colors.topRight.gf(), colors.topRight.bf(), colors.topRight.af())
-            .element4f(TOP_LEFT_COLOR, colors.topLeft.rf(), colors.topLeft.gf(), colors.topLeft.bf(), colors.topLeft.af())
-            .element4f(BOTTOM_RIGHT_COLOR, colors.bottomRight.rf(), colors.bottomRight.gf(), colors.bottomRight.bf(), colors.bottomRight.af())
-            .element4f(BOTTOM_LEFT_COLOR, colors.bottomLeft.rf(), colors.bottomLeft.gf(), colors.bottomLeft.bf(), colors.bottomLeft.af())
+            .element4f(TopRightColor, trR, trG, trB, trA)
+            .element4f(TopLeftColor, tlR, tlG, tlB, tlA)
+            .element4f(BottomRightColor, brR, brG, brB, brA)
+            .element4f(BottomLeftColor, blR, blG, blB, blA)
             .element2f(LocalCord, localX, localY)
             .element2f(uv0, u, v)
             .element2f(size0, width, height)
             .element4f(Radius0, radiusTl, radiusTr, radiusBr, radiusBl)
-            .element(Mix0, VertexElementType.FLOAT, mix)
-            .element(Alpha0, VertexElementType.FLOAT, alpha)
-            .element(Mode0, VertexElementType.FLOAT, mode)
-            .element(BorderWidth, VertexElementType.FLOAT, borderWidth)
-            .element4f(BorderColor, borderColor.rf(), borderColor.gf(), borderColor.bf(), borderColor.af())
-            .element(Type0, VertexElementType.FLOAT, type)
-            .element4f(Scissor0, scissor.x, scissor.y, scissor.z, scissor.w)
+            .element1f(Mix0, mix)
+            .element1f(Alpha0, alpha)
+            .element1f(Mode0, mode)
+            .element1f(BorderWidth, borderWidth)
+            .element4f(BorderColor, bcR, bcG, bcB, bcA)
+            .element1f(Type0, type)
+            .element4f(Scissor0, sx, sy, sz, sw)
     }
 
-    private fun Color4b.rf(): Float = r / 255f
-    private fun Color4b.gf(): Float = g / 255f
-    private fun Color4b.bf(): Float = b / 255f
-    private fun Color4b.af(): Float = a / 255f
-
-    private val TOP_RIGHT_COLOR: VertexElement = RectFormat.getVertexElement("TopRightColor0")
-    private val TOP_LEFT_COLOR: VertexElement = RectFormat.getVertexElement("TopLeftColor0")
-    private val BOTTOM_RIGHT_COLOR: VertexElement = RectFormat.getVertexElement("BottomRightColor0")
-    private val BOTTOM_LEFT_COLOR: VertexElement = RectFormat.getVertexElement("BottomLeftColor0")
+    private val TopRightColor: VertexElement = RectFormat.getVertexElement("TopRightColor0")
+    private val TopLeftColor: VertexElement = RectFormat.getVertexElement("TopLeftColor0")
+    private val BottomRightColor: VertexElement = RectFormat.getVertexElement("BottomRightColor0")
+    private val BottomLeftColor: VertexElement = RectFormat.getVertexElement("BottomLeftColor0")
     private val LocalCord: VertexElement = RectFormat.getVertexElement("LocalCoord0")
     private val uv0: VertexElement = RectFormat.getVertexElement("UV0")
     private val size0: VertexElement = RectFormat.getVertexElement("Size0")

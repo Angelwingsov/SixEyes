@@ -3,6 +3,7 @@ package com.sixeyes.client.render.main.vertex.mesh;
 import com.sixeyes.client.render.main.buffer.BufferTarget;
 import com.sixeyes.client.render.main.buffer.BufferUsage;
 import com.sixeyes.client.render.main.buffer.GpuBuffer;
+import com.sixeyes.client.render.main.buffer.GpuBufferPool;
 import com.sixeyes.client.render.main.vertex.DrawMode;
 import com.sixeyes.client.render.main.vertex.IndexBufferGenerator;
 import com.sixeyes.client.render.main.vertex.format.VertexFormat;
@@ -20,14 +21,25 @@ public class Mesh implements IMesh {
     private GpuBuffer indexBuffer;
     
     private boolean standalone = false;
+    private final boolean pooledVertexBuffer;
     
     public Mesh(ByteBuffer byteBuffer, VertexFormat vertexFormat, int vertexCount, int indexCount, DrawMode drawMode, Runnable afterInitRunnable) {
+        this(byteBuffer, vertexFormat, vertexCount, indexCount, drawMode, true, afterInitRunnable);
+    }
+
+    public Mesh(ByteBuffer byteBuffer, VertexFormat vertexFormat, int vertexCount, int indexCount, DrawMode drawMode, boolean pooledVertexBuffer, Runnable afterInitRunnable) {
         this.vertexFormat = vertexFormat;
         this.vertexCount = vertexCount;
         this.indexCount = indexCount;
         this.drawMode = drawMode;
+        this.pooledVertexBuffer = pooledVertexBuffer;
 
-        this.vertexBuffer = new GpuBuffer(byteBuffer, BufferUsage.STATIC_DRAW, BufferTarget.ARRAY_BUFFER);
+        if (pooledVertexBuffer) {
+            this.vertexBuffer = GpuBufferPool.acquireVertexBuffer();
+            this.vertexBuffer.upload(byteBuffer, BufferUsage.STREAM_DRAW);
+        } else {
+            this.vertexBuffer = new GpuBuffer(byteBuffer, BufferUsage.STATIC_DRAW, BufferTarget.ARRAY_BUFFER);
+        }
 
         afterInitRunnable.run();
     }
@@ -88,7 +100,11 @@ public class Mesh implements IMesh {
 
     @Override
     public void close() {
-        this.vertexBuffer.close();
+        if (this.pooledVertexBuffer) {
+            GpuBufferPool.releaseVertexBuffer(this.vertexBuffer);
+        } else {
+            this.vertexBuffer.close();
+        }
         if (this.indexBuffer != null)
             this.indexBuffer.close();
     }

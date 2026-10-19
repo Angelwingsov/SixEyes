@@ -11,11 +11,13 @@ import java.nio.FloatBuffer;
 public class Matrix4fGlUniform extends GlUniform {
     private final FloatBuffer buffer = MemoryUtil.memAllocFloat(16);
 
+
     public Matrix4fGlUniform(String name, int location, GlProgram glProgram) {
         super(name, location, glProgram);
     }
 
     public void set(Matrix4f matrix4f) {
+        this.buffer.clear();
         matrix4f.get(this.buffer);
         this.program.addUpdatedUniform(this);
     }

@@ -2,7 +2,7 @@
 
 #include<scissor_check>
 
-precision lowp float;
+precision mediump float;
 
 in vec4 FragColor;
 in vec2 TexCoord;
@@ -31,7 +31,7 @@ void main() {
 
     float dist = median(texture(uTexture, TexCoord).rgb) - 0.5 + thickness;
     vec2 d = vec2(dFdx(TexCoord.x), dFdy(TexCoord.y)) * textureSize(uTexture, 0);
-    float pixels = uRange * inversesqrt(d.x * d.x + d.y * d.y);
+    float pixels = uRange * inversesqrt(max(dot(d, d), 1e-6));
     float alpha = smoothstep(-smoothness, smoothness, dist * pixels);
 
     float minX = FadeParams.x;
