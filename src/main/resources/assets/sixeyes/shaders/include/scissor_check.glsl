@@ -1,4 +1,3 @@
-// Ну это же просто секс!
 void applyScissor(vec4 scissor, vec2 fragCoord) {
     if (scissor.x < -90000.0) return;
 

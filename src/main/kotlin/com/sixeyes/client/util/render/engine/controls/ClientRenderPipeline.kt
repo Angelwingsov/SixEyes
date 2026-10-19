@@ -5,7 +5,6 @@ enum class RectGroup {
 }
 
 enum class ClientRenderPipeline {
-    // Отрисовка в 2D
     FIRST_TEXT, FIRST_SPECIAL, FIRST_RECT,
     POPUP_TEXT, POPUP_SPECIAL, POPUP_RECT,
     WINDOW_TEXT, WINDOW_SPECIAL, WINDOW_RECT,
@@ -13,6 +12,5 @@ enum class ClientRenderPipeline {
     HUD_TEXT, HUD_SPECIAL, HUD_RECT,
     HIGH, MEDIUM, LOW,
 
-    // Отрисовка в 3D
     WORLD
 }

@@ -9,13 +9,11 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 
-// Сократители
 val mc: Minecraft get() = Minecraft.getInstance()
 val player: LocalPlayer get() = mc.player!!
 val level: ClientLevel get() = mc.level!!
 val gameMod: MultiPlayerGameMode get() = mc.gameMode!!
 
-// Расширения
 val ClientInput.movementForward: Float
     get() = moveVector.y
 

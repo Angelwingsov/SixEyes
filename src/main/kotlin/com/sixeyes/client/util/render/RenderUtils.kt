@@ -192,4 +192,58 @@ object RenderUtils {
             pipeline = pipeline
         )
     }
+
+    fun roundedRectWithBorder(
+        matrix: Matrix4f,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Color4b,
+        radius: Float,
+        borderWidth: Float,
+        borderColor: Color4b,
+        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
+    ) {
+        rect(
+            matrix = matrix,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            colors = RectColors.solid(color),
+            corners = RectCorners.all(radius),
+            border = if (borderWidth > 0f) RectBorder(borderWidth, borderColor) else RectBorder.NONE,
+            pipeline = pipeline
+        )
+    }
+
+    fun customRoundedRect(
+        matrix: Matrix4f,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Color4b,
+        topLeft: Float,
+        topRight: Float,
+        bottomRight: Float,
+        bottomLeft: Float,
+        borderWidth: Float = 0f,
+        borderColor: Color4b = Color4b.TRANSPARENT,
+        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
+    ) {
+        rect(
+            matrix = matrix,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            colors = RectColors.solid(color),
+            corners = RectCorners(topLeft, topRight, bottomRight, bottomLeft),
+            border = if (borderWidth > 0f) RectBorder(borderWidth, borderColor) else RectBorder.NONE,
+            pipeline = pipeline
+        )
+    }
 }
+

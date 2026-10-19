@@ -19,10 +19,13 @@ import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl
 import com.sixeyes.client.util.render.engine.controls.MatrixControl
+import com.sixeyes.client.util.other.color.Color4b
+import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics
 import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.OverlayRenderEvent
 import java.lang.reflect.Field
+import java.util.Locale
 
 object RenderListener : Listener() {
     var loaded = false
@@ -90,10 +93,34 @@ object RenderListener : Listener() {
             (mc.screen as IRenderable).render(mouseX, mouseY)
         }
 
+        debugoverlay()
+
         LayerControl.flushPipelinesArray(pipelines)
         ChromaRenderer.endFrame()
         GlStateManager._enableDepthTest()
     }
+
+    private fun debugoverlay() {
+        val matrix = MatrixControl.matrix4fStack
+        val screenW = mc.window.guiScaledWidth.toFloat()
+        val screenH = mc.window.guiScaledHeight.toFloat()
+
+        val btnY = 28f
+        val btnSize = 9f
+        val btnRadius = 2f
+        val btnBg = Color4b(255, 255, 255, 240)
+        val btnXs = floatArrayOf(6f, 21f, 36f)
+        for (btnX in btnXs) { RenderUtils.roundedRect(matrix = matrix, x = btnX, y = btnY, width = btnSize, height = btnSize, color = btnBg, radius = btnRadius, pipeline = ClientRenderPipeline.HUD_RECT)
+        Fonts.google_sans_regular.drawCenteredString(matrix = matrix, text = "Hi", centerX = btnX + btnSize * 0.5f, y = btnY + btnSize + 2f, size = 7f, color = Color4b(255, 255, 255, 240), shadow = false, pipeline = ClientRenderPipeline.HUD_TEXT) }
+
+        val fps = mc.fps
+        val frameMs = String.format(Locale.US, "%.2f", if (fps > 0) 1000f / fps else 0f)
+        val draws = RenderMetrics.lastDrawCalls
+        val verts = RenderMetrics.lastVertices
+        val idx = RenderMetrics.lastIndices
+        val batches = "${RenderMetrics.lastFlushes}/51"
+        val metricsText = "fps: $fps | frame: ${frameMs}ms | drawcalls: $draws | verts: $verts | idx: $idx | batches: $batches"
+        Fonts.google_sans_regular.drawRightString(matrix = matrix, text = metricsText, rightX = screenW - 6f, y = screenH - 12f, size = 8.5f, color = Color4b(230, 224, 233, 230), shadow = true, pipeline = ClientRenderPipeline.HUD_TEXT) }
 
     private fun registerShaderLibs() {
         GlobalChromaCompiler.registerShaderLibraries(

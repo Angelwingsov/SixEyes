@@ -1,4 +1,4 @@
-﻿package com.sixeyes.client.util.other.color
+package com.sixeyes.client.util.other.color
 
 import net.minecraft.network.chat.TextColor
 import net.minecraft.util.ARGB
@@ -75,9 +75,6 @@ data class Color4b(val argb: Int) {
             )
         }
 
-        /**
-         * Creates a color with full alpha (255).
-         */
         @JvmStatic
         fun fullAlpha(rgb: Int): Color4b = Color4b(rgb or 0xFF000000.toInt())
     }

@@ -119,10 +119,7 @@ public class Mesh implements IMesh {
         return builder(new ByteBufferBuilder(size), drawMode, vertexFormat, true);
     }
 
-//    private static final MeshBuilder meshBuilder = new MeshBuilder(new ByteBufferBuilder(1024 * 1024), DrawMode.QUADS, VertexFormat.builder().build(), true);
-    
     public static MeshBuilder builder(ByteBufferBuilder bufferAllocator, DrawMode drawMode, VertexFormat vertexFormat, boolean closeAllocatorAfterBuild) {
-//        return meshBuilder.set(bufferAllocator, drawMode, vertexFormat, closeAllocatorAfterBuild);
         return new MeshBuilder(bufferAllocator, drawMode, vertexFormat, closeAllocatorAfterBuild);
     }
 }

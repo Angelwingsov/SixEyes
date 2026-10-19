@@ -44,9 +44,9 @@ void main() {
     int sex = int(round(Type));
     vec4 gradientColor = SuperKuniOtDonichki(fragCoord);
 
-    if (sex == 0) { // RECT (GRADIENT & BASIC)
+    if (sex == 0) {
         fragColor = sd_render(gradientColor, BorderColor, dist, BorderWidth);
-    } else if (sex == 1) { // TEXTURE & BLUR
+    } else if (sex == 1) {
         vec4 texColor = texture(uTexture, TexCoord);
         vec4 baseColor = mix(texColor, gradientColor, Mix);
         baseColor.a *= Alpha;

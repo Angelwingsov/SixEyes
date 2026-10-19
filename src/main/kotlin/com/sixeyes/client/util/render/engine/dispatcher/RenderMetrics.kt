@@ -3,7 +3,7 @@ package com.sixeyes.client.util.render.engine.dispatcher
 import com.sixeyes.client.render.main.buffer.GpuBufferPool
 
 object RenderMetrics {
-    var enabled: Boolean = false
+    var enabled: Boolean = true
 
     @Volatile var frameDrawCalls: Int = 0
     @Volatile var frameFlushes: Int = 0
