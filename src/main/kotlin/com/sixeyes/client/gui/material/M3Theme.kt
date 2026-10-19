@@ -33,12 +33,14 @@ data class M3Palette(
 )
 
 object M3Theme {
+
     val MATERIAL = M3Palette(
         name = "Material",
         surface = Color4b(20, 18, 24, 245),
         surfaceDim = Color4b(17, 15, 21, 250),
         surfaceBright = Color4b(59, 56, 62, 255),
         surfaceContainerLowest = Color4b(15, 13, 19, 250),
+        surfaceContainerLow = Color4b(29, 27, 32, 245),
         surfaceContainer = Color4b(33, 31, 38, 250),
         surfaceContainerHigh = Color4b(43, 41, 48, 255),
         surfaceContainerHighest = Color4b(54, 52, 59, 255),
