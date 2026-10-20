@@ -7,45 +7,17 @@ import com.sixeyes.client.render.main.vertex.DrawMode;
 import com.sixeyes.client.render.main.vertex.IndexBufferGenerator;
 import com.sixeyes.client.render.main.vertex.format.uploader.VertexFormatManager;
 import com.sixeyes.client.render.main.vertex.mesh.IMesh;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.opengl.GlBuffer;
-import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.opengl.GlDevice;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
 
 import java.util.function.BiConsumer;
 
 public final class BufferRenderers {
     public static final BiConsumer<MeshData, Boolean> MINECRAFT_BUFFER = (builtBuffer, close) -> {
-        MeshData.DrawState drawParameters = builtBuffer.drawState();
-
-        if (drawParameters.indexCount() > 0) {
-            RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSystem.getSequentialBuffer(drawParameters.mode());
-
-            GpuBuffer vertexBuffer = RenderSystem.getDevice().createBuffer(() -> "Renderer vertex mesh", 40, builtBuffer.vertexBuffer());
-            GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(drawParameters.indexCount());
-            VertexFormat.IndexType indexType = shapeIndexBuffer.type();
-
-            ((GlDevice) RenderSystem.getDevice()).vertexArrayCache().bindVertexArray(
-                    drawParameters.format(),
-                    (GlBuffer) vertexBuffer
-            );
-            GL15.glBindBuffer(GlConst.GL_ELEMENT_ARRAY_BUFFER, ChromaRenderer.bufferIdGetter.apply((GlBuffer) indexBuffer));
-            drawIndexed(
-                    drawParameters.indexCount(),
-                    GlConst.toGl(drawParameters.mode()),
-                    GlConst.toGl(indexType)
-            );
-
-            vertexBuffer.close();
-        }
         if (close)
             builtBuffer.close();
+        throw new UnsupportedOperationException("MINECRAFT_BUFFER is not supported in 26.3, use CUSTOM_BUFFER");
     };
 
     public static final BiConsumer<IMesh, Boolean> CUSTOM_BUFFER = (mesh, close) -> {
@@ -73,8 +45,4 @@ public final class BufferRenderers {
         if (close)
             mesh.close();
     };
-
-    private static void drawIndexed(int count, int drawMode, int indexType) {
-        GL11.glDrawElements(drawMode, count, indexType, 0);
-    }
 }

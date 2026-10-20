@@ -68,12 +68,15 @@ object FontLoader {
             }
         }
 
-        val texStream = fromAssets(pngPath) ?: error("Font texture not found: $pngPath")
-        val texInfo = texStream.use {
-            TextureLoaders.INPUT_STREAM.load(it, ColorMode.RGBA, TextureFiltering.SMOOTH, TextureWrapping.DEFAULT)
-        } ?: error("Failed to decode font texture: $pngPath")
-
-        val texture = GLTexture.of(name, texInfo)
+        val texture = if (com.sixeyes.client.listener.listeners.RenderListener.isOpenGLActive()) {
+            val texStream = fromAssets(pngPath) ?: error("Font texture not found: $pngPath")
+            val texInfo = texStream.use {
+                TextureLoaders.INPUT_STREAM.load(it, ColorMode.RGBA, TextureFiltering.SMOOTH, TextureWrapping.DEFAULT)
+            } ?: error("Failed to decode font texture: $pngPath")
+            GLTexture.of(name, texInfo)
+        } else {
+            GLTexture.empty(name)
+        }
         val fallback = ascii['?'.code] ?: map.get(65533) ?: ascii[' '.code]
 
         return Font(
@@ -84,7 +87,9 @@ object FontLoader {
             ascii = ascii,
             glyphs = map,
             fallback = fallback,
-            batch = MsdfBatchState(texture, range)
+            batch = MsdfBatchState(texture, range),
+            pngPath = pngPath,
+            distanceRange = range
         )
     }
 }

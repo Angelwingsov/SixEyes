@@ -5,8 +5,8 @@ import com.sixeyes.client.render.main.exceptions.ExceptionPrinter;
 import com.sixeyes.client.render.main.exceptions.impl.NoSuchUniformException;
 import com.sixeyes.client.render.main.program.GlProgram;
 import com.sixeyes.client.render.main.program.uniform.GlUniform;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.opengl.GlBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.backend.opengl.GlBuffer;
 import org.lwjgl.opengl.GL31;
 
 public class BufferUniform extends GlUniform {

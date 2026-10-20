@@ -1,7 +1,10 @@
 package com.sixeyes.client.listener.listeners
 
-import com.mojang.blaze3d.opengl.GlStateManager
-import com.mojang.blaze3d.opengl.GlBuffer
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.renderpearl.backend.opengl.GlDevice
+import com.mojang.renderpearl.backend.opengl.GlStateManager
+import com.mojang.renderpearl.frontend.FrontendGpuDevice
+import com.mojang.renderpearl.backend.opengl.GlBuffer
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.interfaces.IRenderable
 import com.sixeyes.client.listener.Listener
@@ -24,14 +27,14 @@ import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics
 import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.OverlayRenderEvent
-import java.lang.reflect.Field
+import net.minecraft.client.DeltaTracker
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.util.Locale
 
 object RenderListener : Listener() {
     var loaded = false
     private var shaderLibsRegistered = false
     private var chromaInitialized = false
-    private var glBufferHandleField: Field? = null
 
     @JvmField
     val ALL_GUI_PIPELINES = arrayOf(
@@ -46,16 +49,56 @@ object RenderListener : Listener() {
     private val cachedOverlayEvent = OverlayRenderEvent()
 
     override fun init() {
-        ensureChromaInitialized()
-        ensureShaderLibsRegistered()
+        if (isOpenGLActive()) {
+            ensureChromaInitialized()
+        }
+        if (isOpenGLActive()) {
+            ensureShaderLibsRegistered()
+        }
     }
 
     fun hookRender(partialTicks: Float, vararg pipelines: ClientRenderPipeline) {
         hookRenderArray(partialTicks, pipelines)
     }
 
+    fun renderVulkanHud(guiGraphics: GuiGraphicsExtractor, deltaTracker: DeltaTracker) {
+        if (isOpenGLActive()) return
+        if (mc.player == null || mc.level == null) return
+
+        RenderUtils.currentGraphics = guiGraphics
+        try {
+            val partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false)
+            val mouseX = InputListener.mouseX()
+            val mouseY = InputListener.mouseY()
+
+            val overlayRenderEvent = cachedOverlayEvent.apply {
+                put(OverlayRenderEvent.PARTIAL_TICKS, partialTicks)
+                put(OverlayRenderEvent.MOUSE_X, mouseX)
+                put(OverlayRenderEvent.MOUSE_Y, mouseY)
+            }
+
+            EventManager.post(overlayRenderEvent)
+            debugoverlay()
+        } finally {
+            RenderUtils.currentGraphics = null
+        }
+    }
+
+    fun isOpenGLActive(): Boolean {
+        val device = RenderSystem.tryGetDevice() ?: return false
+        if (device is FrontendGpuDevice) {
+            return device.backend is GlDevice
+        }
+        return false
+    }
+
     fun hookRenderArray(partialTicks: Float, pipelines: Array<out ClientRenderPipeline>) {
         if (mc.player == null || mc.level == null) return
+        if (!isOpenGLActive()) return
+
+
+
+
         init()
 
         if (!loaded) {
@@ -89,8 +132,9 @@ object RenderListener : Listener() {
 
         EventManager.post(overlayRenderEvent)
 
-        if (mc.screen is IRenderable) {
-            (mc.screen as IRenderable).render(mouseX, mouseY)
+        val currentScreen = mc.gui.screen()
+        if (currentScreen is IRenderable) {
+            (currentScreen as IRenderable).render(mouseX, mouseY)
         }
 
         debugoverlay()
@@ -144,13 +188,8 @@ object RenderListener : Listener() {
             return
         }
 
-        val handleField = glBufferHandleField ?: GlBuffer::class.java.getDeclaredField("handle").also { field ->
-            field.isAccessible = true
-            glBufferHandleField = field
-        }
-
         ChromaRenderer.init(
-            { glBuffer -> handleField.getInt(glBuffer) },
+            { glBuffer -> glBuffer.handle() },
             { mc.window.guiScale }
         )
         chromaInitialized = true

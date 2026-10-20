@@ -163,4 +163,8 @@ public class GLTexture implements GlTex {
     public static GLTexture of(String name, GLTextureInfo glTextureInfo) {
         return new GLTexture(name).create(glTextureInfo);
     }
+
+    public static GLTexture empty(String name) {
+        return new GLTexture(name);
+    }
 }

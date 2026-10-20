@@ -1,11 +1,11 @@
 package com.sixeyes.client.render.main;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.opengl.GlBuffer;
-import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.backend.opengl.GlBuffer;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.sixeyes.client.render.main.blend.DstFactor;
 import com.sixeyes.client.render.main.blend.SrcFactor;
@@ -75,7 +75,7 @@ public class ChromaRenderer {
 
         Matrix4fGlUniform modelViewUniform = globalProgram.getUniform("ModelViewMat", UniformType.MATRIX);
         if (modelViewUniform != null)
-            modelViewUniform.set(RenderSystem.getModelViewMatrix());
+            modelViewUniform.set(RenderSystem.getModelViewMatrixCopy());
     }
 
     public static void setGlobalProgram(GlProgram globalProgram) {
@@ -83,26 +83,26 @@ public class ChromaRenderer {
     }
 
     public static void applyDefaultBlend() {
-        GlStateManager._enableBlend();
+        GlStateManager._enableBlend(0);
         GL11.glBlendFunc(SrcFactor.SRC_ALPHA.glId, DstFactor.ONE_MINUS_SRC_ALPHA.glId);
     }
 
     public static void applyBlend(SrcFactor srcFactor, DstFactor dstFactor) {
-        GlStateManager._enableBlend();
+        GlStateManager._enableBlend(0);
         GL11.glBlendFunc(srcFactor.glId, dstFactor.glId);
     }
 
     public static void applyBlend(SrcFactor srcColor, DstFactor dstColor, SrcFactor srcAlpha, DstFactor dstAlpha) {
-        GlStateManager._enableBlend();
+        GlStateManager._enableBlend(0);
         GL14.glBlendFuncSeparate(srcColor.glId, dstColor.glId, srcAlpha.glId, dstAlpha.glId);
     }
 
     public static void disableBlend() {
-        GlStateManager._disableBlend();
+        GlStateManager._disableBlend(0);
     }
 
     public static void bindMainFramebuffer() {
-        bindFramebuffer(Minecraft.getInstance().getMainRenderTarget());
+        bindFramebuffer(Minecraft.getInstance().gameRenderer.mainRenderTarget());
     }
 
     public static void bindFramebuffer(RenderTarget framebuffer) {

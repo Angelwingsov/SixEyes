@@ -7,7 +7,7 @@ import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.setting.KeybindSetting
 import org.joml.Matrix4f
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 
 class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponent(keySetting) {
     var isListening = false
@@ -119,8 +119,8 @@ class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponen
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (isListening) {
-            if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_BACKSPACE || keyCode == GLFW.GLFW_KEY_DELETE) {
-                keySetting.set(GLFW.GLFW_KEY_UNKNOWN)
+            if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_BACKSPACE || keyCode == InputConstants.KEY_DELETE) {
+                keySetting.set(InputConstants.UNKNOWN.value)
             } else {
                 keySetting.set(keyCode)
             }

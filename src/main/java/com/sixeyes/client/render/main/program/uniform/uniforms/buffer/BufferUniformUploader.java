@@ -3,8 +3,8 @@ package com.sixeyes.client.render.main.program.uniform.uniforms.buffer;
 import com.sixeyes.client.render.main.ChromaRenderer;
 import com.sixeyes.client.render.main.buffer.BufferTarget;
 import com.sixeyes.client.render.main.buffer.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.opengl.GlBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.backend.opengl.GlBuffer;
 import org.lwjgl.opengl.GL32;
 
 import java.util.function.BiConsumer;

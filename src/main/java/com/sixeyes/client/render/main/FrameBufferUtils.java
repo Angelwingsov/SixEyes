@@ -1,11 +1,16 @@
 package com.sixeyes.client.render.main;
 
-import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.opengl.GlDevice;
-import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.renderpearl.backend.opengl.DirectStateAccess;
+import com.mojang.renderpearl.backend.opengl.FrameBufferAttachment;
+import com.mojang.renderpearl.backend.opengl.FrameBufferCache;
+import com.mojang.renderpearl.backend.opengl.GlConst;
+import com.mojang.renderpearl.backend.opengl.GlDevice;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
+import com.mojang.renderpearl.frontend.FrontendGpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
+
+import java.util.Collections;
 
 public final class FrameBufferUtils {
     public static void bindFrameBuffer(int id, GpuTextureView colorTexture) {
@@ -20,8 +25,12 @@ public final class FrameBufferUtils {
         if (depthTexture != null)
             validateFrameBufferTexture("Depth", depthTexture);
 
-        return ((GlTexture)colorTexture.texture())
-                .getFbo(((GlDevice) RenderSystem.getDevice()).directStateAccess(), depthTexture == null ? null : depthTexture.texture());
+        GlDevice glDevice = (GlDevice) ((FrontendGpuDevice) RenderSystem.getDevice()).backend;
+        DirectStateAccess dsa = glDevice.directStateAccess();
+        FrameBufferCache cache = glDevice.frameBufferCache();
+        FrameBufferAttachment color = (FrameBufferAttachment) colorTexture.texture();
+        FrameBufferAttachment depth = depthTexture == null ? null : (FrameBufferAttachment) depthTexture.texture();
+        return cache.getFbo(dsa, Collections.singletonList(color), depth);
     }
 
     public static void validateFrameBufferTexture(String name, GpuTextureView gpuTextureView) {

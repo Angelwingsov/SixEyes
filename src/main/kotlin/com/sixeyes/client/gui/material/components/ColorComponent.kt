@@ -1,5 +1,6 @@
 package com.sixeyes.client.gui.material.components
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.gui.material.AnimFloat
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b

@@ -1,5 +1,6 @@
 package com.sixeyes.client.gui.material.components
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.Category
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.AnimFloat
@@ -109,7 +110,7 @@ class CategoryPanel(
             }
         }
 
-        if (isExpanded && isHovered(mouseX, mouseY, x, y + headerH, width, height - headerH)) {
+        if (isExpanded) {
             for (modComp in moduleComponents) {
                 if (modComp.mouseClicked(mouseX, mouseY, button)) {
                     return true

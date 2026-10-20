@@ -1,16 +1,16 @@
 package com.sixeyes.module.modules.render
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.RENDER
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.module.Module
-import org.lwjgl.glfw.GLFW
 
 object ClickGuiModule : Module(
     name = "ClickGUI",
     category = RENDER,
     description = "Material 3 DropDown Graphical User Interface",
-    key = GLFW.GLFW_KEY_RIGHT_SHIFT
+    key = InputConstants.KEY_RSHIFT
 ) {
     val blur = boolean(
         name = "Background Scrim",
@@ -19,14 +19,14 @@ object ClickGuiModule : Module(
     )
 
     override fun onEnable() {
-        if (mc.screen == null) {
-            mc.setScreen(ClickGuiScreen)
+        if (mc.gui.screen() == null) {
+            mc.gui.setScreen(ClickGuiScreen)
         }
     }
 
     override fun onDisable() {
-        if (mc.screen is ClickGuiScreen) {
-            mc.setScreen(null)
+        if (mc.gui.screen() is ClickGuiScreen) {
+            mc.gui.setScreen(null)
         }
     }
 }

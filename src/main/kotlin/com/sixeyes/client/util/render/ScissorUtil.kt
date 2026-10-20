@@ -10,10 +10,20 @@ object ScissorUtil {
     private val CACHE_SCISSOR = Vector4f(-1f)
 
     fun start(x: Float, y: Float, width: Float, height: Float) {
+        val gfx = RenderUtils.currentGraphics
+        if (gfx != null) {
+            gfx.enableScissor(x.toInt(), y.toInt(), (x + width).toInt(), (y + height).toInt())
+            return
+        }
         ChromaRenderer.scissorStack.push(ScissorRect(x, y, width, height))
     }
 
     fun end() {
+        val gfx = RenderUtils.currentGraphics
+        if (gfx != null) {
+            gfx.disableScissor()
+            return
+        }
         ChromaRenderer.scissorStack.pop()
     }
 

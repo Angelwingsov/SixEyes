@@ -1,17 +1,17 @@
 package com.sixeyes.module
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.Category
 import com.sixeyes.client.interfaces.IToggable
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.event.EventManager
 import com.sixeyes.module.setting.*
-import org.lwjgl.glfw.GLFW
 
 open class Module(
     val name: String,
     val category: Category,
     val description: String = "",
-    var key: Int = GLFW.GLFW_KEY_UNKNOWN
+    var key: Int = InputConstants.UNKNOWN.value
 ) : IToggable {
     private var enabled = false
     var isExpanded = false
@@ -70,6 +70,6 @@ open class Module(
     fun color(name: String, value: Color4b, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
         register(ColorSetting(name, value, hasAlpha, description, isVisible))
 
-    fun keybind(name: String, value: Int = GLFW.GLFW_KEY_UNKNOWN, description: String = "", isVisible: () -> Boolean = { true }) =
+    fun keybind(name: String, value: Int = InputConstants.UNKNOWN.value, description: String = "", isVisible: () -> Boolean = { true }) =
         register(KeybindSetting(name, value, description, isVisible))
 }

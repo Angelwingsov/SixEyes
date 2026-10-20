@@ -1,10 +1,10 @@
 package com.sixeyes.client.render.main.program.uniform.uniforms.sampler;
 
-import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.renderpearl.backend.opengl.GlTexture;
+import com.mojang.renderpearl.backend.opengl.GlTextureView;
 import com.sixeyes.client.render.texture.GlTex;
 import com.sixeyes.client.render.main.program.GlProgram;
 import com.sixeyes.client.render.main.program.uniform.GlUniform;
-import com.mojang.blaze3d.opengl.GlTextureView;
 
 public class SamplerUniform extends GlUniform {
     public final int samplerId;

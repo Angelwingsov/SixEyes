@@ -1,12 +1,12 @@
 package com.sixeyes.client.listener.listeners
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.listener.Listener
 import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.KeyPressEvent
 import com.sixeyes.module.ModuleManager
 import com.sixeyes.module.modules.render.ClickGuiModule
-import org.lwjgl.glfw.GLFW
 import sweetie.evaware.flora.api.Commando
 
 object InputListener : Listener() {
@@ -24,8 +24,8 @@ object InputListener : Listener() {
 
     @Commando
     fun onKeyPress(event: KeyPressEvent) {
-        if (event.action == GLFW.GLFW_PRESS) {
-            if (mc.screen == null) {
+        if (event.action == InputConstants.PRESS) {
+            if (mc.gui.screen() == null) {
                 if (event.key == ClickGuiModule.key) {
                     ClickGuiModule.toggle()
                     event.cancel = true
@@ -33,7 +33,7 @@ object InputListener : Listener() {
                 }
 
                 for (module in ModuleManager.modules) {
-                    if (module.key != GLFW.GLFW_KEY_UNKNOWN && module.key == event.key) {
+                    if (module.key != InputConstants.UNKNOWN.value && module.key == event.key) {
                         module.toggle()
                     }
                 }
