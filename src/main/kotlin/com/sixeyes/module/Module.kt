@@ -70,6 +70,15 @@ open class Module(
     fun color(name: String, value: Color4b, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
         register(ColorSetting(name, value, hasAlpha, description, isVisible))
 
+    fun color(name: String, r: Int, g: Int, b: Int, a: Int = 255, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
+        register(ColorSetting(name, r, g, b, a, hasAlpha, description, isVisible))
+
+    fun colorPicker(name: String, value: Color4b, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
+        color(name, value, hasAlpha, description, isVisible)
+
+    fun colorPicker(name: String, r: Int, g: Int, b: Int, a: Int = 255, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
+        color(name, r, g, b, a, hasAlpha, description, isVisible)
+
     fun keybind(name: String, value: Int = InputConstants.UNKNOWN.value, description: String = "", isVisible: () -> Boolean = { true }) =
         register(KeybindSetting(name, value, description, isVisible))
 }

@@ -78,12 +78,12 @@ object RenderUtils {
                     }
                 }
             }
-        } else if (colors.topLeft != colors.topRight && colors.topLeft == colors.bottomLeft) {
+        } else if (colors.topLeft != colors.topRight && colors.topLeft == colors.bottomLeft && colors.topRight == colors.bottomRight) {
             val ix1 = Math.round(x1)
             val iy1 = Math.round(y1)
             val ix2 = Math.round(x2)
             val iy2 = Math.round(y2)
-            val steps = (ix2 - ix1).coerceIn(1, 24)
+            val steps = (ix2 - ix1).coerceIn(1, 48)
             val stepW = (ix2 - ix1).toFloat() / steps
             val c1 = colors.topLeft
             val c2 = colors.topRight
@@ -99,12 +99,32 @@ object RenderUtils {
             if (hasBorder) {
                 gfx.outline(ix1, iy1, ix2 - ix1, iy2 - iy1, style.border.color.argb)
             }
-        } else {
+        } else if (colors.topLeft == colors.topRight && colors.bottomLeft == colors.bottomRight) {
             val ix1 = Math.round(x1)
             val iy1 = Math.round(y1)
             val ix2 = Math.round(x2)
             val iy2 = Math.round(y2)
             gfx.fillGradient(ix1, iy1, ix2, iy2, colors.topLeft.argb, colors.bottomLeft.argb)
+            if (hasBorder) {
+                gfx.outline(ix1, iy1, ix2 - ix1, iy2 - iy1, style.border.color.argb)
+            }
+        } else {
+            val ix1 = Math.round(x1)
+            val iy1 = Math.round(y1)
+            val ix2 = Math.round(x2)
+            val iy2 = Math.round(y2)
+            val steps = (ix2 - ix1).coerceIn(1, 52)
+            val stepW = (ix2 - ix1).toFloat() / steps
+            for (s in 0 until steps) {
+                val t = s.toDouble() / steps
+                val colTop = colors.topLeft.interpolateTo(colors.topRight, t)
+                val colBot = colors.bottomLeft.interpolateTo(colors.bottomRight, t)
+                val sx1 = Math.round(ix1 + s * stepW)
+                val sx2 = Math.round(ix1 + (s + 1) * stepW)
+                if (sx2 > sx1) {
+                    gfx.fillGradient(sx1, iy1, sx2, iy2, colTop.argb, colBot.argb)
+                }
+            }
             if (hasBorder) {
                 gfx.outline(ix1, iy1, ix2 - ix1, iy2 - iy1, style.border.color.argb)
             }

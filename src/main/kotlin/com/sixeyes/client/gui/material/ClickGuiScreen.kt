@@ -4,6 +4,7 @@ import com.sixeyes.client.listener.listeners.RenderListener
 import com.sixeyes.client.extensions.categories
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.components.CategoryPanel
+import com.sixeyes.client.gui.material.components.ColorPickerWindow
 import com.sixeyes.client.interfaces.IRenderable
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
@@ -24,6 +25,8 @@ import java.util.Locale
 object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderable {
     val panels: MutableList<CategoryPanel> = ArrayList()
     private var initialized = false
+
+    var activeColorPicker: ColorPickerWindow? = null
 
     private var lastFrameTime = System.currentTimeMillis()
 
@@ -74,6 +77,8 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         for (panel in panels) {
             panel.render(matrix, mouseX, mouseY, dt)
         }
+
+        activeColorPicker?.render(matrix, mouseX, mouseY, dt)
     }
 
     override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
@@ -107,6 +112,16 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val mouseY = event.y()
         val button = normalizeButton(event.button())
 
+        val picker = activeColorPicker
+        if (picker != null) {
+            if (picker.mouseClicked(mouseX, mouseY, button)) {
+                return true
+            } else {
+                activeColorPicker = null
+                return true
+            }
+        }
+
         for (i in panels.indices.reversed()) {
             val panel = panels[i]
             if (panel.mouseClicked(mouseX, mouseY, button)) {
@@ -123,6 +138,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val mouseX = event.x()
         val mouseY = event.y()
         val button = normalizeButton(event.button())
+        activeColorPicker?.mouseReleased(mouseX, mouseY, button)
         for (panel in panels) {
             panel.mouseReleased(mouseX, mouseY, button)
         }
@@ -133,6 +149,9 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val mouseX = event.x()
         val mouseY = event.y()
         val button = normalizeButton(event.button())
+        if (activeColorPicker?.mouseDragged(mouseX, mouseY, button, deltaX, deltaY) == true) {
+            return true
+        }
         for (panel in panels) {
             panel.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
         }
@@ -143,6 +162,16 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val keyCode = event.key()
         val scanCode = event.keycode()
         val modifiers = event.modifiers()
+
+        if (activeColorPicker != null) {
+            if (keyCode == InputConstants.KEY_ESCAPE) {
+                activeColorPicker = null
+                return true
+            }
+            if (activeColorPicker!!.keyPressed(keyCode, scanCode, modifiers)) {
+                return true
+            }
+        }
 
         for (panel in panels) {
             if (panel.keyPressed(keyCode, scanCode, modifiers)) {
@@ -166,6 +195,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
 
     override fun onClose() {
         super.onClose()
+        activeColorPicker = null
         ClickGuiModule.setEnabled(false)
     }
 }

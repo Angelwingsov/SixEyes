@@ -10,21 +10,27 @@ object ScissorUtil {
     private val CACHE_SCISSOR = Vector4f(-1f)
 
     fun start(x: Float, y: Float, width: Float, height: Float) {
+        ChromaRenderer.scissorStack.push(ScissorRect(x, y, width, height))
         val gfx = RenderUtils.currentGraphics
         if (gfx != null) {
-            gfx.enableScissor(x.toInt(), y.toInt(), (x + width).toInt(), (y + height).toInt())
-            return
+            val cur = ChromaRenderer.scissorStack.current
+            if (cur != null) {
+                gfx.enableScissor(cur.x().toInt(), cur.y().toInt(), (cur.x() + cur.width()).toInt(), (cur.y() + cur.height()).toInt())
+            }
         }
-        ChromaRenderer.scissorStack.push(ScissorRect(x, y, width, height))
     }
 
     fun end() {
+        ChromaRenderer.scissorStack.pop()
         val gfx = RenderUtils.currentGraphics
         if (gfx != null) {
-            gfx.disableScissor()
-            return
+            val cur = ChromaRenderer.scissorStack.current
+            if (cur != null) {
+                gfx.enableScissor(cur.x().toInt(), cur.y().toInt(), (cur.x() + cur.width()).toInt(), (cur.y() + cur.height()).toInt())
+            } else {
+                gfx.disableScissor()
+            }
         }
-        ChromaRenderer.scissorStack.pop()
     }
 
     fun getCurrentScissorValues(): Vector4f {
@@ -46,9 +52,7 @@ object ScissorUtil {
         val realH = rect.height() * scale
 
         val glMinY = h - (realY + realH)
-
         val glMaxY = h - realY
-
         val glMinX = realX
         val glMaxX = realX + realW
 
