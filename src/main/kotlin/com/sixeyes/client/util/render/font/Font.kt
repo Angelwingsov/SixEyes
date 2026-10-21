@@ -189,7 +189,7 @@ class Font(
         var baselineY = y + ascender * size
         var maxWidth = 0f
         val shadowFactor = if (isShadow) 0.25f else 1.0f
-        val baseAlpha = (color.a / 255f) * shadowFactor
+        val baseAlpha = color.a / 255f
 
         var curR = (color.r / 255f) * shadowFactor
         var curG = (color.g / 255f) * shadowFactor

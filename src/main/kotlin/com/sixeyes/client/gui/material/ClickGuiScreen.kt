@@ -140,8 +140,8 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
-        val keyCode = event.keycode()
-        val scanCode = event.key()
+        val keyCode = event.key()
+        val scanCode = event.keycode()
         val modifiers = event.modifiers()
 
         for (panel in panels) {

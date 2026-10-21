@@ -83,7 +83,7 @@ object RenderUtils {
             val iy1 = Math.round(y1)
             val ix2 = Math.round(x2)
             val iy2 = Math.round(y2)
-            val steps = (ix2 - ix1).coerceIn(1, 48)
+            val steps = (ix2 - ix1).coerceIn(1, 24)
             val stepW = (ix2 - ix1).toFloat() / steps
             val c1 = colors.topLeft
             val c2 = colors.topRight

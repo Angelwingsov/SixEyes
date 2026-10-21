@@ -27,10 +27,11 @@ void main() {
     vec4 s = texture(Sampler0, texCoord0);
     float dist = median(s.rgb) - 0.5;
 
-    vec2 d = vec2(dFdx(texCoord0.x), dFdy(texCoord0.y)) * vec2(textureSize(Sampler0, 0));
-    float pixels = float(MSDF_RANGE) * inversesqrt(max(dot(d, d), 1e-6));
+    vec2 unitRange = vec2(MSDF_RANGE) / vec2(textureSize(Sampler0, 0));
+    vec2 screenTexSize = vec2(1.0) / max(fwidth(texCoord0), vec2(1e-6));
+    float screenPxRange = max(0.5 * dot(unitRange, screenTexSize), 1.0);
 
-    float alpha = smoothstep(-0.5, 0.5, dist * pixels);
+    float alpha = smoothstep(-0.5, 0.5, dist * screenPxRange);
 
     vec4 color = vec4(vertexColor.rgb, vertexColor.a * alpha) * ColorModulator;
     if (color.a <= 0.003) {

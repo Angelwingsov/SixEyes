@@ -51,8 +51,6 @@ object RenderListener : Listener() {
     override fun init() {
         if (isOpenGLActive()) {
             ensureChromaInitialized()
-        }
-        if (isOpenGLActive()) {
             ensureShaderLibsRegistered()
         }
     }
@@ -95,9 +93,6 @@ object RenderListener : Listener() {
     fun hookRenderArray(partialTicks: Float, pipelines: Array<out ClientRenderPipeline>) {
         if (mc.player == null || mc.level == null) return
         if (!isOpenGLActive()) return
-
-
-
 
         init()
 

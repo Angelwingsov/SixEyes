@@ -32,6 +32,9 @@ bin/
 
 run/
 
+# kotlin
+.kotlin/
+
 # java
 
 hs_err_*.log
