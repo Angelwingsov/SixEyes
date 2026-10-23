@@ -18,7 +18,6 @@ Using third-party modifications may violate the terms of service of some Minecra
 *   remila.x - Besties
 *   Reneko 
 *   Skawz
-*   johon0error
 
 
 ---
