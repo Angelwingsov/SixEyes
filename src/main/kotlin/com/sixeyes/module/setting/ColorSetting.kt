@@ -2,6 +2,7 @@ package com.sixeyes.module.setting
 
 import com.sixeyes.client.util.other.color.Color4b
 import java.awt.Color
+import java.util.Locale
 
 typealias ColorPickerSetting = ColorSetting
 
@@ -38,23 +39,14 @@ class ColorSetting(
     val a: Int get() = value.a
     val rgb: Int get() = value.argb
 
-    fun getHue(): Float {
-        val hsb = FloatArray(3)
-        Color.RGBtoHSB(r, g, b, hsb)
-        return hsb[0]
-    }
+    fun getHSB(dest: FloatArray = FloatArray(3)): FloatArray =
+        Color.RGBtoHSB(r, g, b, dest)
 
-    fun getSaturation(): Float {
-        val hsb = FloatArray(3)
-        Color.RGBtoHSB(r, g, b, hsb)
-        return hsb[1]
-    }
+    fun getHue(): Float = getHSB()[0]
 
-    fun getBrightness(): Float {
-        val hsb = FloatArray(3)
-        Color.RGBtoHSB(r, g, b, hsb)
-        return hsb[2]
-    }
+    fun getSaturation(): Float = getHSB()[1]
+
+    fun getBrightness(): Float = getHSB()[2]
 
     fun setHSB(hue: Float, saturation: Float, brightness: Float, alpha: Float = 1f) {
         set(Color4b.ofHSB(hue, saturation, brightness, alpha))
@@ -66,9 +58,9 @@ class ColorSetting(
 
     fun toHex(): String {
         return if (hasAlpha) {
-            "#%02X%02X%02X%02X".format(value.r, value.g, value.b, value.a)
+            String.format(Locale.US, "#%02X%02X%02X%02X", value.r, value.g, value.b, value.a)
         } else {
-            "#%02X%02X%02X".format(value.r, value.g, value.b)
+            String.format(Locale.US, "#%02X%02X%02X", value.r, value.g, value.b)
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.sixeyes.client.gui.material.components
 
-import com.mojang.blaze3d.platform.InputConstants
+import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
@@ -50,21 +50,14 @@ class ModuleComponent(val module: Module) {
         this.y = y
         this.width = width
 
+        val palette = M3Theme.current
         val pillH = 22f
         val pillRadius = 6f
         var curY = y
 
         val isEnabled = module.isEnabled()
-        val modBg = if (isEnabled) {
-            Color4b(208, 188, 255, 255)
-        } else {
-            Color4b(43, 39, 52, 220)
-        }
-        val modTextCol = if (isEnabled) {
-            Color4b(33, 0, 93, 255)
-        } else {
-            Color4b(230, 224, 233, 255)
-        }
+        val modBg = if (isEnabled) palette.primary else Color4b(43, 39, 52, 220)
+        val modTextCol = if (isEnabled) Color4b(33, 0, 93, 255) else palette.onSurface
 
         RenderUtils.roundedRect(
             matrix = matrix,
@@ -127,10 +120,8 @@ class ModuleComponent(val module: Module) {
 
         if (isExpanded && hasSettings()) {
             for (comp in settingComponents) {
-                if (comp.setting.isVisible()) {
-                    if (comp.mouseClicked(mouseX, mouseY, button)) {
-                        return true
-                    }
+                if (comp.setting.isVisible() && comp.mouseClicked(mouseX, mouseY, button)) {
+                    return true
                 }
             }
         }

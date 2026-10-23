@@ -144,22 +144,37 @@ object RectRenderer : Renderable() {
         val sz = scissor.z
         val sw = scissor.w
 
-        val x2 = x + width
-        val y2 = y + height
-        
-        emitVertexDirect(builder, matrix, x, y, 0f, 0f, u0, v0, width, height,
+        val pad = 1.5f
+        val px1 = x - pad
+        val py1 = y - pad
+        val px2 = x + width + pad
+        val py2 = y + height + pad
+
+        val lx1 = -pad
+        val ly1 = -pad
+        val lx2 = width + pad
+        val ly2 = height + pad
+
+        val uPad = if (width > 0f) (u1 - u0) * (pad / width) else 0f
+        val vPad = if (height > 0f) (v1 - v0) * (pad / height) else 0f
+        val pu0 = u0 - uPad
+        val pv0 = v0 - vPad
+        val pu1 = u1 + uPad
+        val pv1 = v1 + vPad
+
+        emitVertexDirect(builder, matrix, px1, py1, lx1, ly1, pu0, pv0, width, height,
             trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
             radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
-        
-        emitVertexDirect(builder, matrix, x, y2, 0f, 1f, u0, v1, width, height,
+
+        emitVertexDirect(builder, matrix, px1, py2, lx1, ly2, pu0, pv1, width, height,
             trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
             radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
-        
-        emitVertexDirect(builder, matrix, x2, y2, 1f, 1f, u1, v1, width, height,
+
+        emitVertexDirect(builder, matrix, px2, py2, lx2, ly2, pu1, pv1, width, height,
             trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
             radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
-        
-        emitVertexDirect(builder, matrix, x2, y, 1f, 0f, u1, v0, width, height,
+
+        emitVertexDirect(builder, matrix, px2, py1, lx2, ly1, pu1, pv0, width, height,
             trR, trG, trB, trA, tlR, tlG, tlB, tlA, brR, brG, brB, brA, blR, blG, blB, blA,
             radiusTl, radiusTr, radiusBr, radiusBl, mix, alpha, mode, borderWidth, bcR, bcG, bcB, bcA, typeId, sx, sy, sz, sw)
     }

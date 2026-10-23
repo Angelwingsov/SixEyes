@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(KeyboardHandler.class)
 public class MixinKeyboardHandler {
     @Inject(method = "keyPress", at = @At("HEAD"), cancellable = true)
-    public void onKeyPress(long window, int action, KeyEvent keyEvent, CallbackInfo ci) {
+    private void onKeyPress(long window, int action, KeyEvent keyEvent, CallbackInfo ci) {
         KeyPressEvent event = new KeyPressEvent(keyEvent.key(), keyEvent.keycode(), action, keyEvent.modifiers());
         EventManager.INSTANCE.post(event);
         if (event.getCancel()) {

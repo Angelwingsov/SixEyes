@@ -27,6 +27,7 @@ class ColorPickerWindow(
     private var bri = 1f
     private var alpha = 1f
     private var lastColor: Color4b? = null
+    private val hsbBuffer = FloatArray(3)
 
     init {
         sync()
@@ -36,9 +37,10 @@ class ColorPickerWindow(
         val col = setting.value
         if (lastColor == null || col != lastColor) {
             lastColor = col
-            val h = setting.getHue()
-            val s = setting.getSaturation()
-            val b = setting.getBrightness()
+            val hsb = setting.getHSB(hsbBuffer)
+            val h = hsb[0]
+            val s = hsb[1]
+            val b = hsb[2]
             if (s > 0.001f && b > 0.001f) hue = h
             sat = s
             bri = b

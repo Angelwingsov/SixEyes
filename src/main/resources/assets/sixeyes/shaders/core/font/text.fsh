@@ -22,7 +22,7 @@ float median(vec3 color) {
 }
 
 void main() {
-    applyScissor(Scissor, gl_FragCoord.xy);
+    float scAlpha = applyScissor(Scissor, gl_FragCoord.xy);
 
     float thickness = Style.x;
     float smoothness = Style.y;
@@ -67,6 +67,8 @@ void main() {
     } else {
         fragColor = color;
     }
+
+    fragColor.a *= scAlpha;
 
     if (fragColor.a <= 0.0) {
         discard;

@@ -1,6 +1,6 @@
 package com.sixeyes.client.gui.material.components
 
-import com.mojang.blaze3d.platform.InputConstants
+import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
@@ -20,15 +20,15 @@ class ModeComponent(
     constructor(modeSetting: ModeSetting) : this(
         setting = modeSetting,
         modes = modeSetting.modes,
-        isSelected = { modeSetting.isMode(it) },
-        onSelect = { modeSetting.set(it) }
+        isSelected = modeSetting::isMode,
+        onSelect = modeSetting::set
     )
 
     constructor(multiModeSetting: MultiModeSetting) : this(
         setting = multiModeSetting,
         modes = multiModeSetting.modes,
-        isSelected = { multiModeSetting.isSelected(it) },
-        onSelect = { multiModeSetting.toggle(it) }
+        isSelected = multiModeSetting::isSelected,
+        onSelect = multiModeSetting::toggle
     )
 
     private data class ChipRect(
@@ -55,13 +55,15 @@ class ModeComponent(
         this.width = width
         chipRects.clear()
 
+        val palette = M3Theme.current
+
         Fonts.google_sans_medium.drawString(
             matrix = matrix,
             text = setting.name,
             x = x + 2f,
             y = y + 2f,
             size = 10.5f,
-            color = Color4b(230, 224, 233, 255),
+            color = palette.onSurface,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT
         )
@@ -90,18 +92,16 @@ class ModeComponent(
             val selected = isSelected(mode)
             val hovered = isHovered(mouseX.toDouble(), mouseY.toDouble(), curX, curY, chipW, chipH)
 
-            val chipBg = if (selected) {
-                Color4b(208, 188, 255, 255)
-            } else if (hovered) {
-                Color4b(82, 74, 98, 255)
-            } else {
-                Color4b(67, 60, 79, 255)
+            val chipBg = when {
+                selected -> palette.primary
+                hovered -> Color4b(82, 74, 98, 255)
+                else -> Color4b(67, 60, 79, 255)
             }
 
             val textCol = if (selected) {
                 Color4b(33, 0, 93, 255)
             } else {
-                Color4b(230, 224, 233, 255)
+                palette.onSurface
             }
 
             RenderUtils.roundedRect(

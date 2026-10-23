@@ -1,9 +1,9 @@
 package com.sixeyes.client.gui.material.components
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.Category
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.AnimFloat
+import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.ScissorUtil
@@ -11,6 +11,7 @@ import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.ModuleManager
 import org.joml.Matrix4f
+import kotlin.math.hypot
 
 class CategoryPanel(
     val category: Category,
@@ -23,14 +24,16 @@ class CategoryPanel(
     private val expandAnim = AnimFloat(if (isExpanded) 1f else 0f, if (isExpanded) 1f else 0f, 16f)
 
     var isDragging = false
+    private var hasMovedWhileDragging = false
+    private var dragStartMouseX = 0.0
+    private var dragStartMouseY = 0.0
     private var dragOffsetX = 0f
     private var dragOffsetY = 0f
 
     val moduleComponents: MutableList<ModuleComponent> = ArrayList()
 
     init {
-        val mods = ModuleManager.modules.filter { it.category == category }
-        for (mod in mods) {
+        for (mod in ModuleManager.getByCategory(category)) {
             moduleComponents.add(ModuleComponent(mod))
         }
     }
@@ -41,6 +44,7 @@ class CategoryPanel(
         mouseY: Int,
         dt: Float
     ): Float {
+        val palette = M3Theme.current
         val collapsedH = 42f
         val headerBtnH = 27f
         val innerPadX = 5f
@@ -62,31 +66,56 @@ class CategoryPanel(
         this.height = totalPanelH
 
         val outerCardBg = Color4b(20, 18, 24, 255)
-        RenderUtils.roundedRect(matrix = matrix, x = x, y = y, width = width, height = totalPanelH, color = outerCardBg, radius = outerRadius, pipeline = ClientRenderPipeline.WINDOW_RECT)
+        RenderUtils.roundedRect(
+            matrix = matrix,
+            x = x,
+            y = y,
+            width = width,
+            height = totalPanelH,
+            color = outerCardBg,
+            radius = outerRadius,
+            pipeline = ClientRenderPipeline.WINDOW_RECT
+        )
 
         val innerHeaderBg = Color4b(33, 31, 36, 255)
         val innerBtnW = width - innerPadX * 2f
-        RenderUtils.roundedRect(matrix = matrix, x = x + innerPadX, y = y + innerPadY, width = innerBtnW, height = headerBtnH, color = innerHeaderBg, radius = innerRadius, pipeline = ClientRenderPipeline.WINDOW_RECT)
-        Fonts.google_sans_medium.drawCenteredString(matrix = matrix, text = category.name, centerX = x + width * 0.5f, y = y + innerPadY + 8f, size = 11.5f, color = Color4b(230, 224, 233, 255), shadow = false, pipeline = ClientRenderPipeline.WINDOW_TEXT)
+        RenderUtils.roundedRect(
+            matrix = matrix,
+            x = x + innerPadX,
+            y = y + innerPadY,
+            width = innerBtnW,
+            height = headerBtnH,
+            color = innerHeaderBg,
+            radius = innerRadius,
+            pipeline = ClientRenderPipeline.WINDOW_RECT
+        )
+        Fonts.google_sans_medium.drawCenteredString(
+            matrix = matrix,
+            text = category.displayName,
+            centerX = x + width * 0.5f,
+            y = y + innerPadY + 8f,
+            size = 11.5f,
+            color = palette.onSurface,
+            shadow = false,
+            pipeline = ClientRenderPipeline.WINDOW_TEXT
+        )
 
         if (currentBodyH > 1f && moduleComponents.isNotEmpty()) {
-            ScissorUtil.start(x, y + headerH, width, currentBodyH)
-
-            var curModY = y + headerH
-            for (modComp in moduleComponents) {
-                val modH = modComp.render(
-                    matrix = matrix,
-                    x = x + 5f,
-                    y = curModY,
-                    width = width - 10f,
-                    mouseX = mouseX,
-                    mouseY = mouseY,
-                    dt = dt
-                )
-                curModY += modH + 4f
+            ScissorUtil.withScissor(x, y + headerH, width, currentBodyH) {
+                var curModY = y + headerH
+                for (modComp in moduleComponents) {
+                    val modH = modComp.render(
+                        matrix = matrix,
+                        x = x + 5f,
+                        y = curModY,
+                        width = width - 10f,
+                        mouseX = mouseX,
+                        mouseY = mouseY,
+                        dt = dt
+                    )
+                    curModY += modH + 4f
+                }
             }
-
-            ScissorUtil.end()
         }
 
         return height
@@ -97,15 +126,15 @@ class CategoryPanel(
 
         if (isHovered(mouseX, mouseY, x, y, width, if (isExpanded) headerH else 42f)) {
             if (button == 0) {
-                isExpanded = !isExpanded
                 isDragging = true
+                hasMovedWhileDragging = false
+                dragStartMouseX = mouseX
+                dragStartMouseY = mouseY
                 dragOffsetX = (mouseX - x).toFloat()
                 dragOffsetY = (mouseY - y).toFloat()
                 return true
             } else if (button == 1) {
-                isDragging = true
-                dragOffsetX = (mouseX - x).toFloat()
-                dragOffsetY = (mouseY - y).toFloat()
+                isExpanded = !isExpanded
                 return true
             }
         }
@@ -122,7 +151,13 @@ class CategoryPanel(
     }
 
     fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
-        isDragging = false
+        if (isDragging && button == 0) {
+            if (!hasMovedWhileDragging) {
+                isExpanded = !isExpanded
+            }
+            isDragging = false
+            hasMovedWhileDragging = false
+        }
         if (isExpanded) {
             for (modComp in moduleComponents) {
                 modComp.mouseReleased(mouseX, mouseY, button)
@@ -132,6 +167,9 @@ class CategoryPanel(
 
     fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {
         if (isDragging) {
+            if (!hasMovedWhileDragging && hypot(mouseX - dragStartMouseX, mouseY - dragStartMouseY) > 2.5) {
+                hasMovedWhileDragging = true
+            }
             x = (mouseX - dragOffsetX).toFloat().coerceIn(4f, mc.window.guiScaledWidth - width - 4f)
             y = (mouseY - dragOffsetY).toFloat().coerceIn(4f, mc.window.guiScaledHeight - 40f)
         } else if (isExpanded) {

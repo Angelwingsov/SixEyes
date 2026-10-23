@@ -11,10 +11,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
     @Inject(method = "render", at = @At("TAIL"))
-    public void renderGuiPipelines(CallbackInfo ci) {
+    private void renderGuiPipelines(CallbackInfo ci) {
         RenderListener.INSTANCE.hookRenderArray(
-                Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false),
-                RenderListener.ALL_GUI_PIPELINES
+            Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false),
+            RenderListener.ALL_GUI_PIPELINES
         );
     }
 }

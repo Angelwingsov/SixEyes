@@ -9,7 +9,10 @@
         "MixinLocalPlayer",
         "MixinGameRenderer",
         "MixinKeyboardHandler",
-        "MixinHud"
+        "MixinHud",
+        "MixinConnection",
+        "MixinScreen",
+        "MixinAbstractContainerScreen"
     ],
     "mixins": [
     ],

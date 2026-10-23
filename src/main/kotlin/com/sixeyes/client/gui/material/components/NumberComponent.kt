@@ -1,7 +1,7 @@
 package com.sixeyes.client.gui.material.components
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.gui.material.AnimFloat
+import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
@@ -27,34 +27,22 @@ class NumberComponent(private val numSetting: NumberSetting) : SettingComponent(
         this.width = width
         this.height = 26f
 
+        val palette = M3Theme.current
         val hovered = isHovered(mouseX.toDouble(), mouseY.toDouble(), x, y, width, height)
         val expandThumb = thumbAnim.update(if (hovered || isDragging) 1f else 0f, dt)
 
         val valText = numSetting.getFormattedValue()
         val valW = Fonts.google_sans_medium.width(valText, 10f)
         val maxTextW = width - valW - 8f
-
-        var textSize = 10f
-        val origW = Fonts.google_sans_regular.width(numSetting.name, textSize)
-        if (origW > maxTextW) {
-            textSize = (textSize * (maxTextW / origW)).coerceIn(8f, 10f)
-        }
-
-        var displayText = numSetting.name
-        if (Fonts.google_sans_regular.width(displayText, textSize) > maxTextW) {
-            while (displayText.isNotEmpty() && Fonts.google_sans_regular.width("$displayText...", textSize) > maxTextW) {
-                displayText = displayText.dropLast(1)
-            }
-            displayText = "$displayText..."
-        }
+        val fitted = fitText(numSetting.name, maxTextW, baseSize = 10f, minSize = 8f)
 
         Fonts.google_sans_regular.drawString(
             matrix = matrix,
-            text = displayText,
+            text = fitted.text,
             x = x + 2f,
             y = y + 2f,
-            size = textSize,
-            color = Color4b(230, 224, 233, 255),
+            size = fitted.size,
+            color = palette.onSurface,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT
         )
@@ -65,7 +53,7 @@ class NumberComponent(private val numSetting: NumberSetting) : SettingComponent(
             rightX = x + width - 2f,
             y = y + 2f,
             size = 10f,
-            color = Color4b(208, 188, 255, 255),
+            color = palette.primary,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT
         )
@@ -79,17 +67,44 @@ class NumberComponent(private val numSetting: NumberSetting) : SettingComponent(
         val range = (numSetting.max - numSetting.min).coerceAtLeast(0.0001)
         val percentage = ((numSetting.value - numSetting.min) / range).coerceIn(0.0, 1.0).toFloat()
         val fillW = trackW * percentage
-        RenderUtils.roundedRect(matrix = matrix, x = trackX, y = trackY, width = trackW, height = trackH, color = Color4b(54, 50, 64, 255), radius = trackRadius, pipeline = ClientRenderPipeline.WINDOW_RECT)
+        RenderUtils.roundedRect(
+            matrix = matrix,
+            x = trackX,
+            y = trackY,
+            width = trackW,
+            height = trackH,
+            color = Color4b(54, 50, 64, 255),
+            radius = trackRadius,
+            pipeline = ClientRenderPipeline.WINDOW_RECT
+        )
 
         if (fillW > 0.5f) {
-            RenderUtils.roundedRect(matrix = matrix, x = trackX, y = trackY, width = fillW, height = trackH, color = Color4b(208, 188, 255, 255), radius = trackRadius, pipeline = ClientRenderPipeline.WINDOW_RECT)
+            RenderUtils.roundedRect(
+                matrix = matrix,
+                x = trackX,
+                y = trackY,
+                width = fillW,
+                height = trackH,
+                color = palette.primary,
+                radius = trackRadius,
+                pipeline = ClientRenderPipeline.WINDOW_RECT
+            )
         }
 
         val thumbBaseSize = 8f
         val thumbSize = thumbBaseSize + expandThumb * 2f
         val thumbX = trackX + fillW - thumbSize * 0.5f
         val thumbY = trackY + (trackH - thumbSize) * 0.5f
-        RenderUtils.roundedRect(matrix = matrix, x = thumbX, y = thumbY, width = thumbSize, height = thumbSize, color = Color4b(208, 188, 255, 255), radius = thumbSize * 0.5f, pipeline = ClientRenderPipeline.WINDOW_RECT)
+        RenderUtils.roundedRect(
+            matrix = matrix,
+            x = thumbX,
+            y = thumbY,
+            width = thumbSize,
+            height = thumbSize,
+            color = palette.primary,
+            radius = thumbSize * 0.5f,
+            pipeline = ClientRenderPipeline.WINDOW_RECT
+        )
 
         if (isDragging) {
             updateValueFromMouse(mouseX.toDouble(), trackX, trackW)

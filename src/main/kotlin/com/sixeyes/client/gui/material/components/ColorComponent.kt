@@ -4,7 +4,6 @@ import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.AnimFloat
 import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.client.gui.material.M3Theme
-import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
@@ -51,26 +50,14 @@ class ColorComponent(private val colorSetting: ColorSetting) : SettingComponent(
         val swatchY = y + (height - swatchH) * 0.5f
 
         val maxTextW = swatchX - (x + 4f) - 4f
-        var textSize = 10f
-        val origW = Fonts.google_sans_regular.width(colorSetting.name, textSize)
-        if (origW > maxTextW) {
-            textSize = (textSize * (maxTextW / origW)).coerceIn(8f, 10f)
-        }
-
-        var displayText = colorSetting.name
-        if (Fonts.google_sans_regular.width(displayText, textSize) > maxTextW) {
-            while (displayText.isNotEmpty() && Fonts.google_sans_regular.width("$displayText...", textSize) > maxTextW) {
-                displayText = displayText.dropLast(1)
-            }
-            displayText = "$displayText..."
-        }
+        val fitted = fitText(colorSetting.name, maxTextW, baseSize = 10f, minSize = 8f)
 
         Fonts.google_sans_regular.drawString(
             matrix = matrix,
-            text = displayText,
+            text = fitted.text,
             x = x + 4f,
-            y = y + (height - textSize) * 0.5f - 1f,
-            size = textSize,
+            y = y + (height - fitted.size) * 0.5f - 1f,
+            size = fitted.size,
             color = palette.onSurface,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT

@@ -6,9 +6,7 @@ import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.other.color.ColorUtil
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.ScissorUtil
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl

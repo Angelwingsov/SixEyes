@@ -8,11 +8,12 @@ object ListenerManager : ILoadable {
     val listeners: MutableList<Listener> = ArrayList()
 
     override fun load() {
+        listeners.clear()
         add(
             InputListener,
             RenderListener
         )
-        listeners.forEach { it.init() }
+        listeners.forEach(Listener::init)
     }
 
     private fun add(vararg listener: Listener) {

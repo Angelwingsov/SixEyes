@@ -3,7 +3,7 @@
 #include<math_utils>
 #include<scissor_check>
 
-precision mediump float;
+precision highp float;
 
 in vec4 TopRightColor;
 in vec4 TopLeftColor;
@@ -26,7 +26,7 @@ uniform sampler2D uTexture;
 
 out vec4 fragColor;
 
-vec4 SuperKuniOtDonichki(vec2 uv) {
+vec4 interpolateCornerColors(vec2 uv) {
     vec4 topColor = mix(TopLeftColor, TopRightColor, uv.x);
     vec4 bottomColor = mix(BottomLeftColor, BottomRightColor, uv.x);
 
@@ -34,28 +34,34 @@ vec4 SuperKuniOtDonichki(vec2 uv) {
 }
 
 void main() {
-    applyScissor(Scissor, gl_FragCoord.xy);
+    float scAlpha = applyScissor(Scissor, gl_FragCoord.xy);
 
-    float dist = sd_dist(Size, fragCoord, Radius, Mode);
-    if (dist > 1.0 && BorderWidth <= 0.0) {
+    vec2 pos = fragCoord - Size * 0.5;
+    float dist = sd_dist(Size, pos, Radius, Mode);
+    float aa = max(fwidth(dist), 1e-4);
+
+    if (dist > aa * 0.5 && BorderWidth <= 0.0) {
         discard;
     }
 
-    int sex = int(round(Type));
-    vec4 gradientColor = SuperKuniOtDonichki(fragCoord);
+    int rectType = int(round(Type));
+    vec2 normCoord = clamp(pos / Size + 0.5, 0.0, 1.0);
+    vec4 gradientColor = interpolateCornerColors(normCoord);
 
-    if (sex == 0) {
+    if (rectType == 0) {
         fragColor = sd_render(gradientColor, BorderColor, dist, BorderWidth);
-    } else if (sex == 1) {
-        vec4 texColor = texture(uTexture, TexCoord);
+    } else if (rectType == 1) {
+        vec4 texColor = texture(uTexture, clamp(TexCoord, 0.0, 1.0));
         vec4 baseColor = mix(texColor, gradientColor, Mix);
         baseColor.a *= Alpha;
         fragColor = sd_render(baseColor, BorderColor, dist, BorderWidth);
     } else {
-        fragColor = vec4(0, 0, 0, 0);
+        fragColor = vec4(0.0);
     }
 
-    if (fragColor.a == 0.0) {
+    fragColor.a *= scAlpha;
+
+    if (fragColor.a <= 0.0) {
         discard;
     }
 }

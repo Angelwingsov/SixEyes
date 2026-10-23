@@ -9,9 +9,9 @@ public class GpuBuffer implements Bindable, AutoCloseable {
     public final int id;
     public BufferUsage usage;
     public final BufferTarget target;
-    private int capacity = 0;
+    private int capacity;
     private boolean closed = false;
-    
+
     public GpuBuffer(ByteBuffer data, BufferUsage usage, BufferTarget target) {
         this.id = GL15.glGenBuffers();
         this.usage = usage;
@@ -19,7 +19,7 @@ public class GpuBuffer implements Bindable, AutoCloseable {
         this.capacity = data.remaining();
         bind();
         GL15.glBufferData(target.glId, data, usage.glId);
-        GL15.glBindBuffer(target.glId, 0);
+        unbind();
     }
 
     public GpuBuffer(BufferTarget target, BufferUsage usage, int initialCapacity) {
@@ -29,7 +29,7 @@ public class GpuBuffer implements Bindable, AutoCloseable {
         this.capacity = Math.max(initialCapacity, 4096);
         bind();
         GL15.glBufferData(target.glId, this.capacity, usage.glId);
-        GL15.glBindBuffer(target.glId, 0);
+        unbind();
     }
 
     public void upload(ByteBuffer data, BufferUsage usage) {
@@ -38,12 +38,10 @@ public class GpuBuffer implements Bindable, AutoCloseable {
         int bytes = data.remaining();
         if (bytes > this.capacity) {
             this.capacity = Math.max(bytes, Math.max(this.capacity * 2, 65536));
-            GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
-        } else {
-            GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
         }
+        GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
         GL15.glBufferSubData(this.target.glId, 0, data);
-        GL15.glBindBuffer(this.target.glId, 0);
+        unbind();
     }
 
     public int getCapacity() {
@@ -62,9 +60,9 @@ public class GpuBuffer implements Bindable, AutoCloseable {
 
     @Override
     public void close() {
-        if (!this.closed)
+        if (!this.closed) {
             GL15.glDeleteBuffers(this.id);
-        this.closed = true;
+            this.closed = true;
+        }
     }
 }
-

@@ -12,3 +12,6 @@ accessible field net/minecraft/client/renderer/texture/AbstractTexture sampler L
 mutable field net/minecraft/world/phys/Vec3 x D
 mutable field net/minecraft/world/phys/Vec3 y D
 mutable field net/minecraft/world/phys/Vec3 z D
+
+# Input
+accessible field net/minecraft/client/KeyMapping key Lcom/mojang/blaze3d/platform/InputConstants$Key;

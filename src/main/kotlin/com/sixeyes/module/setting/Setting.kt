@@ -1,12 +1,15 @@
 package com.sixeyes.module.setting
 
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
+
 abstract class Setting<T>(
     val name: String,
     var value: T,
     val defaultValue: T,
     val description: String = "",
     val isVisible: () -> Boolean = { true }
-) {
+) : ReadWriteProperty<Any?, T> {
     private val listeners = mutableListOf<(T) -> Unit>()
 
     fun addListener(listener: (T) -> Unit): Setting<T> {
@@ -23,5 +26,11 @@ abstract class Setting<T>(
 
     fun reset() {
         set(defaultValue)
+    }
+
+    override operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+    override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        set(value)
     }
 }

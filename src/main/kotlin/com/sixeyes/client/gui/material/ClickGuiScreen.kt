@@ -1,26 +1,23 @@
 package com.sixeyes.client.gui.material
 
-import com.sixeyes.client.listener.listeners.RenderListener
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.categories
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.components.CategoryPanel
 import com.sixeyes.client.gui.material.components.ColorPickerWindow
 import com.sixeyes.client.interfaces.IRenderable
+import com.sixeyes.client.listener.listeners.RenderListener
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.MatrixControl
-import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics
-import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.modules.render.ClickGuiModule
-import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import java.util.Locale
 
 object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderable {
     val panels: MutableList<CategoryPanel> = ArrayList()
@@ -98,13 +95,11 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         }
     }
 
-    private fun normalizeButton(button: Int): Int {
-        return when (button) {
-            InputConstants.MOUSE_BUTTON_LEFT -> 0
-            InputConstants.MOUSE_BUTTON_RIGHT -> 1
-            InputConstants.MOUSE_BUTTON_MIDDLE -> 2
-            else -> button
-        }
+    private fun normalizeButton(button: Int): Int = when (button) {
+        InputConstants.MOUSE_BUTTON_LEFT -> 0
+        InputConstants.MOUSE_BUTTON_RIGHT -> 1
+        InputConstants.MOUSE_BUTTON_MIDDLE -> 2
+        else -> button
     }
 
     override fun mouseClicked(event: MouseButtonEvent, bl: Boolean): Boolean {
@@ -114,12 +109,10 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
 
         val picker = activeColorPicker
         if (picker != null) {
-            if (picker.mouseClicked(mouseX, mouseY, button)) {
-                return true
-            } else {
+            if (!picker.mouseClicked(mouseX, mouseY, button)) {
                 activeColorPicker = null
-                return true
             }
+            return true
         }
 
         for (i in panels.indices.reversed()) {
@@ -163,12 +156,13 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val scanCode = event.keycode()
         val modifiers = event.modifiers()
 
-        if (activeColorPicker != null) {
+        val picker = activeColorPicker
+        if (picker != null) {
             if (keyCode == InputConstants.KEY_ESCAPE) {
                 activeColorPicker = null
                 return true
             }
-            if (activeColorPicker!!.keyPressed(keyCode, scanCode, modifiers)) {
+            if (picker.keyPressed(keyCode, scanCode, modifiers)) {
                 return true
             }
         }
@@ -179,7 +173,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
             }
         }
 
-        if (keyCode == InputConstants.KEY_RSHIFT || keyCode == ClickGuiModule.key) {
+        if (keyCode == InputConstants.KEY_RSHIFT || (ClickGuiModule.key != InputConstants.UNKNOWN.value && keyCode == ClickGuiModule.key)) {
             onClose()
             return true
         }

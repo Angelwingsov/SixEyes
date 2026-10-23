@@ -1,14 +1,14 @@
 package com.sixeyes.client.util.render
 
 import com.sixeyes.client.extensions.CLIENT_ID
-import com.sixeyes.client.util.other.fromAssets
+import com.sixeyes.client.extensions.LOGGER
 import com.sixeyes.client.render.texture.TextureStorage
 import com.sixeyes.client.render.texture.loader.TextureLoaders
 import com.sixeyes.client.render.texture.texture.ColorMode
 import com.sixeyes.client.render.texture.texture.GLTexture
 import com.sixeyes.client.render.texture.texture.TextureFiltering
 import com.sixeyes.client.render.texture.texture.TextureWrapping
-import java.io.InputStream
+import com.sixeyes.client.util.other.fromAssets
 
 object TextureLoader {
     private val loadQueue: MutableMap<String, String> = HashMap()
@@ -25,26 +25,22 @@ object TextureLoader {
     fun load() {
         if (bootstrapped) return
 
-        println("Starting texture loading...")
         val start = System.currentTimeMillis()
-
         loadQueue.forEach { (name, path) ->
             loadSingle(name, path)
         }
-
         loadQueue.clear()
         bootstrapped = true
 
-        println("Loaded textures in ${System.currentTimeMillis() - start} ms")
+        LOGGER.info("Loaded textures in {} ms", System.currentTimeMillis() - start)
     }
 
     private fun loadSingle(name: String, path: String) {
         val resourcePath = "assets/$CLIENT_ID/$path"
-
-        val stream: InputStream? = fromAssets(resourcePath)
+        val stream = fromAssets(resourcePath)
 
         if (stream == null) {
-            System.err.println("Texture file not found: $path")
+            LOGGER.warn("Texture file not found: {}", path)
             return
         }
 
@@ -56,19 +52,13 @@ object TextureLoader {
                     TextureFiltering.SMOOTH,
                     TextureWrapping.DEFAULT
                 )
-
                 val texture = GLTexture.of(name, info)
-
-                val ok = TextureStorage.addTexture(name, texture)
-                println("${if (ok) "[SUCCESS]" else "[FAILED]"} Loaded texture: $name")
+                TextureStorage.addTexture(name, texture)
             }
         } catch (e: Exception) {
-            System.err.println("Failed to load texture: $name")
-            e.printStackTrace()
+            LOGGER.error("Failed to load texture: {}", name, e)
         }
     }
 
-    fun get(name: String): GLTexture? {
-        return TextureStorage.getTexture(name)
-    }
+    fun get(name: String): GLTexture? = TextureStorage.getTexture(name)
 }

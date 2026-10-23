@@ -1,13 +1,19 @@
 package com.sixeyes.client.extensions
 
-val COMBAT = Category("Combat")
-val MOVEMENT = Category("Movement")
-val RENDER = Category("Render")
-val PLAYER = Category("Player")
-val OTHER = Category("Other")
+enum class Category(val displayName: String) {
+    COMBAT("Combat"),
+    MOVEMENT("Movement"),
+    RENDER("Render"),
+    PLAYER("Player"),
+    OTHER("Other");
 
-val categories = listOf(COMBAT, MOVEMENT, RENDER, PLAYER, OTHER)
+    override fun toString(): String = displayName
+}
 
-open class Category(
-    val name: String
-)
+val COMBAT = Category.COMBAT
+val MOVEMENT = Category.MOVEMENT
+val RENDER = Category.RENDER
+val PLAYER = Category.PLAYER
+val OTHER = Category.OTHER
+
+val categories: List<Category> = Category.entries

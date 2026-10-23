@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.renderpearl.backend.opengl.GlDevice
 import com.mojang.renderpearl.backend.opengl.GlStateManager
 import com.mojang.renderpearl.frontend.FrontendGpuDevice
-import com.mojang.renderpearl.backend.opengl.GlBuffer
+import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.interfaces.IRenderable
 import com.sixeyes.client.listener.Listener
@@ -14,17 +14,17 @@ import com.sixeyes.client.render.main.blend.DstFactor
 import com.sixeyes.client.render.main.blend.SrcFactor
 import com.sixeyes.client.render.main.compile.GlShaderLibrary
 import com.sixeyes.client.render.main.compile.GlobalChromaCompiler
-import com.sixeyes.client.util.render.font.Fonts
-import com.sixeyes.client.util.render.font.MsdfTextRenderer
-import com.sixeyes.client.util.render.rect.RectRenderer
+import com.sixeyes.client.util.other.color.Color4b
+import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.TextureLoader
 import com.sixeyes.client.util.render.engine.Renderable
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.engine.controls.LayerControl
 import com.sixeyes.client.util.render.engine.controls.MatrixControl
-import com.sixeyes.client.util.other.color.Color4b
-import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.dispatcher.RenderMetrics
+import com.sixeyes.client.util.render.font.Fonts
+import com.sixeyes.client.util.render.font.MsdfTextRenderer
+import com.sixeyes.client.util.render.rect.RectRenderer
 import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.OverlayRenderEvent
 import net.minecraft.client.DeltaTracker
@@ -33,8 +33,11 @@ import java.util.Locale
 
 object RenderListener : Listener() {
     var loaded = false
+        private set
+
     private var shaderLibsRegistered = false
     private var chromaInitialized = false
+    private var cachedOpenGLActive: Boolean? = null
 
     @JvmField
     val ALL_GUI_PIPELINES = arrayOf(
@@ -60,8 +63,7 @@ object RenderListener : Listener() {
     }
 
     fun renderVulkanHud(guiGraphics: GuiGraphicsExtractor, deltaTracker: DeltaTracker) {
-        if (isOpenGLActive()) return
-        if (mc.player == null || mc.level == null) return
+        if (isOpenGLActive() || !inGame) return
 
         RenderUtils.currentGraphics = guiGraphics
         try {
@@ -69,30 +71,34 @@ object RenderListener : Listener() {
             val mouseX = InputListener.mouseX()
             val mouseY = InputListener.mouseY()
 
-            val overlayRenderEvent = cachedOverlayEvent.apply {
-                put(OverlayRenderEvent.PARTIAL_TICKS, partialTicks)
-                put(OverlayRenderEvent.MOUSE_X, mouseX)
-                put(OverlayRenderEvent.MOUSE_Y, mouseY)
-            }
-
-            EventManager.post(overlayRenderEvent)
-            debugoverlay()
+            EventManager.post(cachedOverlayEvent.update(partialTicks, mouseX, mouseY))
+            renderMetricsOverlay()
         } finally {
             RenderUtils.currentGraphics = null
         }
     }
 
     fun isOpenGLActive(): Boolean {
+        cachedOpenGLActive?.let { return it }
+
         val device = RenderSystem.tryGetDevice() ?: return false
-        if (device is FrontendGpuDevice) {
-            return device.backend is GlDevice
+        val detected = when {
+            device is FrontendGpuDevice -> device.backend is GlDevice
+            else -> {
+                val backendName = runCatching {
+                    val info = device.javaClass.getMethod("getDeviceInfo").invoke(device)
+                    info?.javaClass?.getMethod("backendName")?.invoke(info)?.toString()
+                }.getOrNull()
+                backendName?.contains("OpenGL", ignoreCase = true)
+                    ?: device.javaClass.simpleName.contains("Gl", ignoreCase = true)
+            }
         }
-        return false
+        cachedOpenGLActive = detected
+        return detected
     }
 
     fun hookRenderArray(partialTicks: Float, pipelines: Array<out ClientRenderPipeline>) {
-        if (mc.player == null || mc.level == null) return
-        if (!isOpenGLActive()) return
+        if (!inGame || !isOpenGLActive()) return
 
         init()
 
@@ -119,38 +125,24 @@ object RenderListener : Listener() {
         ChromaRenderer.bindMainFramebuffer()
         ChromaRenderer.applyBlend(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ONE, DstFactor.ZERO)
 
-        val overlayRenderEvent = cachedOverlayEvent.apply {
-            put(OverlayRenderEvent.PARTIAL_TICKS, partialTicks)
-            put(OverlayRenderEvent.MOUSE_X, mouseX)
-            put(OverlayRenderEvent.MOUSE_Y, mouseY)
-        }
-
-        EventManager.post(overlayRenderEvent)
+        EventManager.post(cachedOverlayEvent.update(partialTicks, mouseX, mouseY))
 
         val currentScreen = mc.gui.screen()
         if (currentScreen is IRenderable) {
-            (currentScreen as IRenderable).render(mouseX, mouseY)
+            currentScreen.render(mouseX, mouseY)
         }
 
-        debugoverlay()
+        renderMetricsOverlay()
 
         LayerControl.flushPipelinesArray(pipelines)
         ChromaRenderer.endFrame()
         GlStateManager._enableDepthTest()
     }
 
-    private fun debugoverlay() {
+    private fun renderMetricsOverlay() {
         val matrix = MatrixControl.matrix4fStack
         val screenW = mc.window.guiScaledWidth.toFloat()
         val screenH = mc.window.guiScaledHeight.toFloat()
-
-        val btnY = 28f
-        val btnSize = 9f
-        val btnRadius = 2f
-        val btnBg = Color4b(255, 255, 255, 240)
-        val btnXs = floatArrayOf(6f, 21f, 36f)
-        for (btnX in btnXs) { RenderUtils.roundedRect(matrix = matrix, x = btnX, y = btnY, width = btnSize, height = btnSize, color = btnBg, radius = btnRadius, pipeline = ClientRenderPipeline.HUD_RECT)
-        Fonts.google_sans_regular.drawCenteredString(matrix = matrix, text = "Hi", centerX = btnX + btnSize * 0.5f, y = btnY + btnSize + 2f, size = 7f, color = Color4b(255, 255, 255, 240), shadow = false, pipeline = ClientRenderPipeline.HUD_TEXT) }
 
         val fps = mc.fps
         val frameMs = String.format(Locale.US, "%.2f", if (fps > 0) 1000f / fps else 0f)
@@ -159,20 +151,27 @@ object RenderListener : Listener() {
         val idx = RenderMetrics.lastIndices
         val batches = "${RenderMetrics.lastFlushes}/51"
         val metricsText = "fps: $fps | frame: ${frameMs}ms | drawcalls: $draws | verts: $verts | idx: $idx | batches: $batches"
-        Fonts.google_sans_regular.drawRightString(matrix = matrix, text = metricsText, rightX = screenW - 6f, y = screenH - 12f, size = 8.5f, color = Color4b(230, 224, 233, 230), shadow = true, pipeline = ClientRenderPipeline.HUD_TEXT) }
 
-    private fun registerShaderLibs() {
+        Fonts.google_sans_regular.drawRightString(
+            matrix = matrix,
+            text = metricsText,
+            rightX = screenW - 6f,
+            y = screenH - 12f,
+            size = 8.5f,
+            color = Color4b(230, 224, 233, 230),
+            shadow = true,
+            pipeline = ClientRenderPipeline.HUD_TEXT
+        )
+    }
+
+    private fun ensureShaderLibsRegistered() {
+        if (shaderLibsRegistered) return
         GlobalChromaCompiler.registerShaderLibraries(
             registerShaderLib("shapes"),
             registerShaderLib("math_utils"),
             registerShaderLib("matrices"),
             registerShaderLib("scissor_check")
         )
-    }
-
-    private fun ensureShaderLibsRegistered() {
-        if (shaderLibsRegistered) return
-        registerShaderLibs()
         shaderLibsRegistered = true
     }
 
@@ -190,10 +189,10 @@ object RenderListener : Listener() {
         chromaInitialized = true
     }
 
-    private fun registerShaderLib(file: String?): GlShaderLibrary {
+    private fun registerShaderLib(file: String): GlShaderLibrary {
         return ChromaLoaders.IN_JAR.createShaderLibraryBuilder()
             .name(file)
-            .library(Renderable.SHADER_INCLUDE_PATH + file + ".glsl")
+            .library("${Renderable.SHADER_INCLUDE_PATH}$file.glsl")
             .build()
     }
 }

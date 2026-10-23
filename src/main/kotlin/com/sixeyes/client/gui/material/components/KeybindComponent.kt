@@ -1,5 +1,6 @@
 package com.sixeyes.client.gui.material.components
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.gui.material.AnimFloat
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.render.RenderUtils
@@ -7,7 +8,6 @@ import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.setting.KeybindSetting
 import org.joml.Matrix4f
-import com.mojang.blaze3d.platform.InputConstants
 
 class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponent(keySetting) {
     var isListening = false
@@ -54,26 +54,14 @@ class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponen
         val chipY = y + (height - chipH) * 0.5f
 
         val maxTextW = chipX - (x + 8f) - 4f
-        var textSize = 11f
-        val origW = Fonts.google_sans_regular.width(keySetting.name, textSize)
-        if (origW > maxTextW) {
-            textSize = (textSize * (maxTextW / origW)).coerceIn(8f, 11f)
-        }
-
-        var displayText = keySetting.name
-        if (Fonts.google_sans_regular.width(displayText, textSize) > maxTextW) {
-            while (displayText.isNotEmpty() && Fonts.google_sans_regular.width("$displayText...", textSize) > maxTextW) {
-                displayText = displayText.dropLast(1)
-            }
-            displayText = "$displayText..."
-        }
+        val fitted = fitText(keySetting.name, maxTextW, baseSize = 11f, minSize = 8f)
 
         Fonts.google_sans_regular.drawString(
             matrix = matrix,
-            text = displayText,
+            text = fitted.text,
             x = x + 8f,
             y = y + 7f,
-            size = textSize,
+            size = fitted.size,
             color = palette.onSurface,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT

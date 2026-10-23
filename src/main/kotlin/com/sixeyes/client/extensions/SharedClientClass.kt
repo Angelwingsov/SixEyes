@@ -1,6 +1,9 @@
 package com.sixeyes.client.extensions
 
-import com.sixeyes.SixEyes
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-val CLIENT_NAME = SixEyes::class.java.simpleName
-val CLIENT_ID = CLIENT_NAME.lowercase()
+const val CLIENT_NAME: String = "SixEyes"
+const val CLIENT_ID: String = "sixeyes"
+
+val LOGGER: Logger = LoggerFactory.getLogger(CLIENT_NAME)

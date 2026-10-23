@@ -1,30 +1,53 @@
 package com.sixeyes.client.extensions
 
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.multiplayer.MultiPlayerGameMode
 import net.minecraft.client.player.ClientInput
 import net.minecraft.client.player.LocalPlayer
+import net.minecraft.network.protocol.Packet
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 
-val mc: Minecraft get() = Minecraft.getInstance()
-val player: LocalPlayer get() = mc.player!!
-val level: ClientLevel get() = mc.level!!
-val gameMod: MultiPlayerGameMode get() = mc.gameMode!!
+inline val mc: Minecraft
+    get() = Minecraft.getInstance()
 
-val ClientInput.movementForward: Float
+inline val player: LocalPlayer
+    get() = mc.player!!
+
+inline val level: ClientLevel
+    get() = mc.level!!
+
+inline val gameMode: MultiPlayerGameMode
+    get() = mc.gameMode!!
+
+@Deprecated("Use gameMode instead", ReplaceWith("gameMode"))
+inline val gameMod: MultiPlayerGameMode
+    get() = gameMode
+
+inline val currentScreen: Screen?
+    get() = mc.gui.screen()
+
+inline val inGame: Boolean
+    get() = mc.player != null && mc.level != null
+
+fun sendPacket(packet: Packet<*>) {
+    mc.player?.connection?.send(packet)
+}
+
+inline val ClientInput.movementForward: Float
     get() = moveVector.y
 
-val ClientInput.movementSideways: Float
+inline val ClientInput.movementSideways: Float
     get() = moveVector.x
 
-val LocalPlayer.moving
+inline val LocalPlayer.moving: Boolean
     get() = input.movementForward != 0.0f || input.movementSideways != 0.0f
 
-val Entity.lastPos: Vec3
+inline val Entity.lastPos: Vec3
     get() = Vec3(xo, yo, zo)
 
-val Entity.box: AABB
+inline val Entity.box: AABB
     get() = boundingBox.inflate(pickRadius.toDouble())

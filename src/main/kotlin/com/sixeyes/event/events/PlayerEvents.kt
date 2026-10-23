@@ -1,3 +1,10 @@
 package com.sixeyes.event.events
 
-class PlayerUpdateEvent
+import com.sixeyes.event.types.Event
+
+class PlayerUpdateEvent : Event() {
+    companion object {
+        @JvmField
+        val INSTANCE = PlayerUpdateEvent()
+    }
+}
