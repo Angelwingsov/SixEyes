@@ -5,6 +5,7 @@ import com.sixeyes.client.extensions.RENDER
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.module.Module
+import net.minecraft.client.gui.screens.TitleScreen
 
 object ClickGuiModule : Module(
     name = "ClickGUI",
@@ -19,14 +20,20 @@ object ClickGuiModule : Module(
     )
 
     override fun onEnable() {
-        if (mc.gui.screen() == null) {
+        val screen = mc.gui.screen()
+        if (screen == null || screen is TitleScreen) {
+            ClickGuiScreen.parentScreen = screen
             mc.gui.setScreen(ClickGuiScreen)
+        } else {
+            setEnabled(false)
         }
     }
 
     override fun onDisable() {
         if (mc.gui.screen() is ClickGuiScreen) {
-            mc.gui.setScreen(null)
+            val parent = ClickGuiScreen.parentScreen
+            ClickGuiScreen.parentScreen = null
+            mc.gui.setScreen(parent)
         }
     }
 }

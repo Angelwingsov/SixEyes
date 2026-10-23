@@ -8,6 +8,7 @@ import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.KeyPressEvent
 import com.sixeyes.module.ModuleManager
 import com.sixeyes.module.modules.render.ClickGuiModule
+import net.minecraft.client.gui.screens.TitleScreen
 import sweetie.evaware.flora.api.Commando
 
 object InputListener : Listener() {
@@ -21,16 +22,21 @@ object InputListener : Listener() {
 
     @Commando
     fun onKeyPress(event: KeyPressEvent) {
-        if (event.action != InputConstants.PRESS || currentScreen != null) return
+        if (event.action != InputConstants.PRESS) return
+        if (event.key == InputConstants.UNKNOWN.value) return
 
-        if (event.key == ClickGuiModule.key) {
+        val screen = currentScreen
+        val clickGuiKey = if (ClickGuiModule.key != InputConstants.UNKNOWN.value) ClickGuiModule.key else InputConstants.KEY_RSHIFT
+        if (event.key == clickGuiKey && (screen == null || screen is TitleScreen)) {
             ClickGuiModule.toggle()
             event.cancel = true
             return
         }
 
+        if (screen != null) return
+
         for (module in ModuleManager.modules) {
-            if (module.key != InputConstants.UNKNOWN.value && module.key == event.key) {
+            if (module !== ClickGuiModule && module.key != InputConstants.UNKNOWN.value && module.key == event.key) {
                 module.toggle()
             }
         }

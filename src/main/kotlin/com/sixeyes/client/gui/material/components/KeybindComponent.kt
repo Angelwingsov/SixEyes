@@ -2,6 +2,7 @@ package com.sixeyes.client.gui.material.components
 
 import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.gui.material.AnimFloat
+import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
@@ -13,6 +14,10 @@ class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponen
     var isListening = false
         private set
     private val hoverAnim = AnimFloat(0f, 0f, 14f)
+
+    fun stopListening() {
+        isListening = false
+    }
 
     override fun render(
         matrix: Matrix4f,
@@ -96,8 +101,10 @@ class KeybindComponent(private val keySetting: KeybindSetting) : SettingComponen
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (button == 0 && isHovered(mouseX, mouseY, x, y, width, height)) {
-            isListening = !isListening
+        if ((button == 0 || button == 2) && isHovered(mouseX, mouseY, x, y, width, height)) {
+            val nextListening = !isListening
+            ClickGuiScreen.clearAllListening()
+            isListening = nextListening
             return true
         } else if (isListening) {
             isListening = false

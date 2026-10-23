@@ -12,6 +12,15 @@ accessible field net/minecraft/client/renderer/texture/AbstractTexture sampler L
 mutable field net/minecraft/world/phys/Vec3 x D
 mutable field net/minecraft/world/phys/Vec3 y D
 mutable field net/minecraft/world/phys/Vec3 z D
+accessible field net/minecraft/client/player/LocalPlayer wasSprinting Z
+mutable field net/minecraft/client/player/LocalPlayer wasSprinting Z
+accessible field net/minecraft/world/entity/LivingEntity noJumpDelay I
+mutable field net/minecraft/world/entity/LivingEntity noJumpDelay I
+accessible field net/minecraft/client/Minecraft rightClickDelay I
+mutable field net/minecraft/client/Minecraft rightClickDelay I
+accessible method net/minecraft/client/multiplayer/MultiPlayerGameMode startPrediction (Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/client/multiplayer/prediction/PredictiveAction;)V
 
 # Input
 accessible field net/minecraft/client/KeyMapping key Lcom/mojang/blaze3d/platform/InputConstants$Key;
+accessible field net/minecraft/client/player/ClientInput moveVector Lnet/minecraft/world/phys/Vec2;
+mutable field net/minecraft/client/player/ClientInput moveVector Lnet/minecraft/world/phys/Vec2;

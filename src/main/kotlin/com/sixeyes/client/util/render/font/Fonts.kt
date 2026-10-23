@@ -30,6 +30,7 @@ object Fonts {
     @JvmStatic
     fun preload() {
         google_sans_regular
+        google_sans_medium
         product_sans_regular
     }
 }

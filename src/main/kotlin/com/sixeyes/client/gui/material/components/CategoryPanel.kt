@@ -22,6 +22,7 @@ class CategoryPanel(
     var height: Float = 42f
     var isExpanded = true
     private val expandAnim = AnimFloat(if (isExpanded) 1f else 0f, if (isExpanded) 1f else 0f, 16f)
+    private val scrollYAnim = AnimFloat(y, y, 18f)
 
     var isDragging = false
     private var hasMovedWhileDragging = false
@@ -64,6 +65,10 @@ class CategoryPanel(
         val currentBodyH = totalBodyContentH * expandProgress
         val totalPanelH = collapsedH + (headerH + totalBodyContentH - collapsedH) * expandProgress
         this.height = totalPanelH
+
+        if (!isDragging) {
+            y = scrollYAnim.update(clampY(scrollYAnim.target), dt)
+        }
 
         val outerCardBg = Color4b(20, 18, 24, 255)
         RenderUtils.roundedRect(
@@ -126,6 +131,7 @@ class CategoryPanel(
 
         if (isHovered(mouseX, mouseY, x, y, width, if (isExpanded) headerH else 42f)) {
             if (button == 0) {
+                com.sixeyes.client.gui.material.ClickGuiScreen.clearAllListening()
                 isDragging = true
                 hasMovedWhileDragging = false
                 dragStartMouseX = mouseX
@@ -134,6 +140,7 @@ class CategoryPanel(
                 dragOffsetY = (mouseY - y).toFloat()
                 return true
             } else if (button == 1) {
+                com.sixeyes.client.gui.material.ClickGuiScreen.clearAllListening()
                 isExpanded = !isExpanded
                 return true
             }
@@ -171,12 +178,29 @@ class CategoryPanel(
                 hasMovedWhileDragging = true
             }
             x = (mouseX - dragOffsetX).toFloat().coerceIn(4f, mc.window.guiScaledWidth - width - 4f)
-            y = (mouseY - dragOffsetY).toFloat().coerceIn(4f, mc.window.guiScaledHeight - 40f)
+            y = clampY((mouseY - dragOffsetY).toFloat())
+            scrollYAnim.setImmediate(y)
         } else if (isExpanded) {
             for (modComp in moduleComponents) {
                 modComp.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
             }
         }
+    }
+
+    fun mouseScrolled(scrollY: Double) {
+        val step = 24f
+        scrollYAnim.target = clampY(scrollYAnim.target + scrollY.toFloat() * step)
+    }
+
+    fun isMouseOver(mouseX: Double, mouseY: Double): Boolean {
+        return isHovered(mouseX, mouseY, x, y, width, height)
+    }
+
+    private fun clampY(candidateY: Float): Float {
+        val screenH = mc.window.guiScaledHeight.toFloat()
+        val minY = 4f.coerceAtMost(screenH - height - 8f)
+        val maxY = (screenH - 40f).coerceAtLeast(minY)
+        return candidateY.coerceIn(minY, maxY)
     }
 
     fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {

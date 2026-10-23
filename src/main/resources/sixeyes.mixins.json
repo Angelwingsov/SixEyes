@@ -7,12 +7,17 @@
     "mixinPriority": 1337,
     "client": [
         "MixinLocalPlayer",
+        "MixinKeyboardInput",
+        "MixinEntity",
+        "MixinLivingEntity",
+        "MixinLivingEntityRenderer",
         "MixinGameRenderer",
         "MixinKeyboardHandler",
         "MixinHud",
         "MixinConnection",
         "MixinScreen",
-        "MixinAbstractContainerScreen"
+        "MixinAbstractContainerScreen",
+        "MixinEntityRenderer"
     ],
     "mixins": [
     ],

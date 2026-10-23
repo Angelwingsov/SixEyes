@@ -1,7 +1,9 @@
 package com.sixeyes.mixin;
 
+import com.sixeyes.client.listener.listeners.RenderListener;
 import com.sixeyes.event.EventManager;
 import com.sixeyes.event.events.ScreenCloseEvent;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,5 +22,10 @@ public class MixinScreen {
                 ci.cancel();
             }
         }
+    }
+
+    @Inject(method = "extractRenderStateWithTooltipAndSubtitles", at = @At("TAIL"))
+    private void onExtractRenderStateTail(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        RenderListener.INSTANCE.renderVulkanScreenOverlay(guiGraphics);
     }
 }

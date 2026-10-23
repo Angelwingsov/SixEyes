@@ -1,5 +1,7 @@
 package com.sixeyes.client.gui.material.components
 
+import com.mojang.blaze3d.platform.InputConstants
+import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
@@ -14,6 +16,7 @@ class ModuleComponent(val module: Module) {
     var y: Float = 0f
     var width: Float = 0f
     var height: Float = 0f
+    var isBinding: Boolean = false
     var isExpanded: Boolean
         get() = module.isExpanded
         set(value) {
@@ -70,12 +73,68 @@ class ModuleComponent(val module: Module) {
             pipeline = ClientRenderPipeline.WINDOW_RECT
         )
 
+        val hasBind = module.key != InputConstants.UNKNOWN.value
+        val showBindBadge = isBinding || hasBind
+        var maxNameWidth = width - 14f
+
+        if (showBindBadge) {
+            val keyText = if (isBinding) "..." else KeybindSetting.formatKey(module.key)
+            val keyFontSize = 8.5f
+            val keyTextW = Fonts.google_sans_medium.width(keyText, keyFontSize)
+            val badgePadX = 4.5f
+            val badgeW = (keyTextW + badgePadX * 2f).coerceAtLeast(18f)
+            val badgeH = 14f
+            val badgeX = x + width - badgeW - 4.5f
+            val badgeY = curY + (pillH - badgeH) * 0.5f
+
+            maxNameWidth = (badgeX - (x + 7f) - 4f).coerceAtLeast(20f)
+
+            val badgeBg = if (isEnabled) {
+                if (isBinding) Color4b(33, 0, 93, 75) else Color4b(33, 0, 93, 40)
+            } else {
+                if (isBinding) palette.primaryContainer else palette.surfaceContainerHigh
+            }
+            val badgeTextCol = if (isEnabled) {
+                Color4b(33, 0, 93, 255)
+            } else {
+                if (isBinding) palette.onPrimaryContainer else palette.primary
+            }
+
+            RenderUtils.roundedRect(
+                matrix = matrix,
+                x = badgeX,
+                y = badgeY,
+                width = badgeW,
+                height = badgeH,
+                color = badgeBg,
+                radius = 4f,
+                pipeline = ClientRenderPipeline.WINDOW_RECT
+            )
+
+            Fonts.google_sans_medium.drawCenteredString(
+                matrix = matrix,
+                text = keyText,
+                centerX = badgeX + badgeW * 0.5f,
+                y = badgeY + 3f,
+                size = keyFontSize,
+                color = badgeTextCol,
+                shadow = false,
+                pipeline = ClientRenderPipeline.WINDOW_TEXT
+            )
+        }
+
+        var nameSize = 10.5f
+        val origNameW = Fonts.google_sans_medium.width(module.name, nameSize)
+        if (origNameW > maxNameWidth && origNameW > 0f) {
+            nameSize = (nameSize * (maxNameWidth / origNameW)).coerceIn(8f, 10.5f)
+        }
+
         Fonts.google_sans_medium.drawString(
             matrix = matrix,
             text = module.name,
             x = x + 7f,
-            y = curY + 6f,
-            size = 10.5f,
+            y = curY + (pillH - nameSize) * 0.5f,
+            size = nameSize,
             color = modTextCol,
             shadow = false,
             pipeline = ClientRenderPipeline.WINDOW_TEXT
@@ -109,12 +168,25 @@ class ModuleComponent(val module: Module) {
         val pillH = 22f
 
         if (isHovered(mouseX, mouseY, x, y, width, pillH)) {
-            if (button == 0) {
-                module.toggle()
-                return true
-            } else if (button == 1 && hasSettings()) {
-                isExpanded = !isExpanded
-                return true
+            when (button) {
+                0 -> {
+                    ClickGuiScreen.clearAllListening()
+                    module.toggle()
+                    return true
+                }
+                1 -> {
+                    ClickGuiScreen.clearAllListening()
+                    if (hasSettings()) {
+                        isExpanded = !isExpanded
+                    }
+                    return true
+                }
+                2 -> {
+                    val nextBinding = !isBinding
+                    ClickGuiScreen.clearAllListening()
+                    isBinding = nextBinding
+                    return true
+                }
             }
         }
 
@@ -150,6 +222,16 @@ class ModuleComponent(val module: Module) {
     }
 
     fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        if (isBinding) {
+            if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_DELETE || keyCode == InputConstants.KEY_BACKSPACE) {
+                module.key = InputConstants.UNKNOWN.value
+            } else {
+                module.key = keyCode
+            }
+            isBinding = false
+            return true
+        }
+
         if (isExpanded) {
             for (comp in settingComponents) {
                 if (comp.setting.isVisible() && comp.keyPressed(keyCode, scanCode, modifiers)) {

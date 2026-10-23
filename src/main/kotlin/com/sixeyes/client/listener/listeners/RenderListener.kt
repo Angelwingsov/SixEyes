@@ -72,6 +72,19 @@ object RenderListener : Listener() {
             val mouseY = InputListener.mouseY()
 
             EventManager.post(cachedOverlayEvent.update(partialTicks, mouseX, mouseY))
+            if (mc.gui.screen() == null) {
+                renderMetricsOverlay()
+            }
+        } finally {
+            RenderUtils.currentGraphics = null
+        }
+    }
+
+    fun renderVulkanScreenOverlay(guiGraphics: GuiGraphicsExtractor) {
+        if (isOpenGLActive()) return
+
+        RenderUtils.currentGraphics = guiGraphics
+        try {
             renderMetricsOverlay()
         } finally {
             RenderUtils.currentGraphics = null
@@ -98,7 +111,8 @@ object RenderListener : Listener() {
     }
 
     fun hookRenderArray(partialTicks: Float, pipelines: Array<out ClientRenderPipeline>) {
-        if (!inGame || !isOpenGLActive()) return
+        if (!isOpenGLActive()) return
+        if (!inGame && mc.gui.screen() == null) return
 
         init()
 
@@ -125,7 +139,9 @@ object RenderListener : Listener() {
         ChromaRenderer.bindMainFramebuffer()
         ChromaRenderer.applyBlend(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ONE, DstFactor.ZERO)
 
-        EventManager.post(cachedOverlayEvent.update(partialTicks, mouseX, mouseY))
+        if (inGame) {
+            EventManager.post(cachedOverlayEvent.update(partialTicks, mouseX, mouseY))
+        }
 
         val currentScreen = mc.gui.screen()
         if (currentScreen is IRenderable) {

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.extensions.movementForward
 import com.sixeyes.client.extensions.movementSideways
+import com.sixeyes.module.modules.movement.AutoSprintModule
 import net.minecraft.client.KeyMapping
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -62,7 +63,11 @@ object MoveUtil {
     fun updateMovementKeys(includeSneak: Boolean = false) {
         val keys = if (includeSneak) allMovementKeys else movementKeys
         for (key in keys) {
-            key.isDown = isKeyPressed(key)
+            if (key === mc.options.keySprint) {
+                key.isDown = isKeyPressed(key) || AutoSprintModule.shouldSprint()
+            } else {
+                key.isDown = isKeyPressed(key)
+            }
         }
     }
 

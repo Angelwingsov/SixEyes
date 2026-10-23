@@ -121,6 +121,15 @@ object InventoryMoveModule : Module(
 
     fun slownessIsEnabled(): Boolean = slowness.value
 
+    fun shouldPreventSprint(): Boolean {
+        if (!isEnabled() || !slowness.value) return false
+        return slowed || currentScreen is AbstractContainerScreen<*>
+    }
+
+    fun canMoveInScreen(screen: Screen): Boolean {
+        return isEnabled() && !isTypingScreen(screen)
+    }
+
     private fun flushPackets() {
         if (packetQueue.isEmpty()) return
         flushing = true

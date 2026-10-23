@@ -5,6 +5,8 @@ import com.sixeyes.client.extensions.categories
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.components.CategoryPanel
 import com.sixeyes.client.gui.material.components.ColorPickerWindow
+import com.sixeyes.client.gui.material.components.KeybindComponent
+import com.sixeyes.client.gui.material.components.ModuleComponent
 import com.sixeyes.client.interfaces.IRenderable
 import com.sixeyes.client.listener.listeners.RenderListener
 import com.sixeyes.client.util.other.color.Color4b
@@ -23,6 +25,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
     val panels: MutableList<CategoryPanel> = ArrayList()
     private var initialized = false
 
+    var parentScreen: Screen? = null
     var activeColorPicker: ColorPickerWindow? = null
 
     private var lastFrameTime = System.currentTimeMillis()
@@ -90,6 +93,9 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
     }
 
     override fun extractBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
+        if (mc.level == null) {
+            extractPanorama(guiGraphics, partialTick)
+        }
         if (mc.options.getMenuBackgroundBlurriness() > 0) {
             extractBlurredBackground(guiGraphics)
         }
@@ -100,6 +106,21 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         InputConstants.MOUSE_BUTTON_RIGHT -> 1
         InputConstants.MOUSE_BUTTON_MIDDLE -> 2
         else -> button
+    }
+
+    fun clearAllListening(exceptModule: ModuleComponent? = null, exceptKeybind: KeybindComponent? = null) {
+        for (panel in panels) {
+            for (modComp in panel.moduleComponents) {
+                if (modComp !== exceptModule) {
+                    modComp.isBinding = false
+                }
+                for (settingComp in modComp.settingComponents) {
+                    if (settingComp is KeybindComponent && settingComp !== exceptKeybind) {
+                        settingComp.stopListening()
+                    }
+                }
+            }
+        }
     }
 
     override fun mouseClicked(event: MouseButtonEvent, bl: Boolean): Boolean {
@@ -124,6 +145,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
             }
         }
 
+        clearAllListening()
         return super.mouseClicked(event, bl)
     }
 
@@ -149,6 +171,21 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
             panel.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
         }
         return super.mouseDragged(event, deltaX, deltaY)
+    }
+
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
+        if (scrollY != 0.0) {
+            val hoveredPanel = panels.asReversed().firstOrNull { it.isMouseOver(mouseX, mouseY) }
+            if (hoveredPanel != null) {
+                hoveredPanel.mouseScrolled(scrollY)
+            } else {
+                for (panel in panels) {
+                    panel.mouseScrolled(scrollY)
+                }
+            }
+            return true
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
@@ -188,8 +225,13 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
     override fun isPauseScreen(): Boolean = false
 
     override fun onClose() {
-        super.onClose()
+        clearAllListening()
         activeColorPicker = null
+        val parent = parentScreen
+        parentScreen = null
         ClickGuiModule.setEnabled(false)
+        if (mc.gui.screen() === this) {
+            mc.gui.setScreen(parent)
+        }
     }
 }

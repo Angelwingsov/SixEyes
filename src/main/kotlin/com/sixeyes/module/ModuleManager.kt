@@ -2,9 +2,15 @@ package com.sixeyes.module
 
 import com.sixeyes.client.extensions.Category
 import com.sixeyes.client.interfaces.ILoadable
+import com.sixeyes.module.modules.combat.HitAuraModule
+import com.sixeyes.module.modules.combat.VelocityModule
+import com.sixeyes.module.modules.movement.AutoSprintModule
 import com.sixeyes.module.modules.movement.InventoryMoveModule
+import com.sixeyes.module.modules.movement.NoSlowModule
 import com.sixeyes.module.modules.other.TestModule
+import com.sixeyes.module.modules.player.NoDelayModule
 import com.sixeyes.module.modules.render.ClickGuiModule
+import com.sixeyes.module.modules.render.TagsModule
 
 object ModuleManager : ILoadable {
     val modules: MutableList<Module> = ArrayList()
@@ -12,9 +18,15 @@ object ModuleManager : ILoadable {
     override fun load() {
         modules.clear()
         add(
+            HitAuraModule,
+            VelocityModule,
+            AutoSprintModule,
+            InventoryMoveModule,
+            NoSlowModule,
+            NoDelayModule,
             TestModule,
             ClickGuiModule,
-            InventoryMoveModule
+            TagsModule
         )
     }
 
