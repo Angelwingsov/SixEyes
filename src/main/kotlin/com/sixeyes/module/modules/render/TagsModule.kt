@@ -43,7 +43,6 @@ object TagsModule : Module(
         description = ""
     )
 
-    private val lowhp = Color4b(242, 95, 92, 255)
     private val absorptionHp = Color4b(255, 215, 64, 255)
 
     private data class ProjectedTag(
