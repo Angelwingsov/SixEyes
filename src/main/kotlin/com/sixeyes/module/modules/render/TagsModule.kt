@@ -5,6 +5,7 @@ import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.level
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.extensions.player
+import com.sixeyes.client.gui.material.M3Palette
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.ProjectionUtil
@@ -43,9 +44,7 @@ object TagsModule : Module(
     )
 
     private val lowhp = Color4b(242, 95, 92, 255)
-    private val midhp = Color4b(255, 209, 102, 255)
-    private val highhp = Color4b(102, 224, 122, 255)
-    private val absorptionhp = Color4b(255, 215, 64, 255)
+    private val absorptionHp = Color4b(255, 215, 64, 255)
 
     private data class ProjectedTag(
         val target: Player,
@@ -89,27 +88,40 @@ object TagsModule : Module(
         val scale = size.getFloat()
         val font = Fonts.google_sans_medium
 
-        val fontSize = 9.5f * scale
-        val padX = 6f * scale
-        val padY = 3.5f * scale
-        val gap = 5f * scale
-        val radius = 4.5f * scale
-        val textH = font.getHeight(fontSize)
-        val rectH = textH + padY * 2f
+        val fontSize = 9.0f * scale
+        val badgeFontSize = 8.0f * scale
 
-        val bgColor = Color4b(20, 18, 24, 215)
+        val padX = 5.0f * scale
+        val gap = 4.0f * scale
+        val badgePadX = 3.5f * scale
+        val badgeH = 11.0f * scale
+        val badgeRadius = 3.0f * scale
+
+        val rectH = 13.5f * scale
+        val rectRadius = 4.0f * scale
+
+        val bgColor = palette.surface.with(a = 215)
+        val badgeBg = palette.primaryContainer.with(a = 120)
 
         for (tag in projectedTags) {
             val target = tag.target
             val nameText = target.name.string
-            val totalHp = (target.health + target.absorptionAmount).coerceAtLeast(0f)
+
+            val hp = target.health.coerceAtLeast(0f)
+            val absorption = target.absorptionAmount.coerceAtLeast(0f)
+            val totalHp = hp + absorption
             val hpInt = ceil(totalHp).toInt()
             val hpText = "$hpInt HP"
 
-            val nameW = font.width(nameText, fontSize)
-            val hpW = font.width(hpText, fontSize)
-            val rectW = padX * 2f + nameW + gap + hpW
+            val maxHp = target.maxHealth.coerceAtLeast(1f)
+            val hpPct = (hp / maxHp).coerceIn(0f, 1f)
+            val hpColor = getHealthColor(hpPct, absorption > 0f, palette)
 
+            val nameW = font.width(nameText, fontSize)
+            val hpTextW = font.width(hpText, badgeFontSize)
+            val badgeW = hpTextW + badgePadX * 2f
+
+            val rectW = padX + nameW + gap + badgeW + padX
             val rectX = tag.screenX - rectW * 0.5f
             val rectY = tag.screenY - rectH
 
@@ -120,33 +132,43 @@ object TagsModule : Module(
                 width = rectW,
                 height = rectH,
                 color = bgColor,
-                radius = radius,
+                radius = rectRadius,
                 pipeline = ClientRenderPipeline.HUD_RECT
             )
 
-            val maxHp = target.maxHealth.coerceAtLeast(1f)
-            val hpPct = (target.health / maxHp).coerceIn(0f, 1f)
-            val hpColor = getHealthColor(hpPct, target.absorptionAmount > 0f)
-
-            val textY = rectY + rectH * 0.5f - fontSize * 0.56f
-
+            val nameY = rectY + rectH * 0.5f - fontSize * 0.56f
             font.drawString(
                 matrix = matrix,
                 text = nameText,
                 x = rectX + padX,
-                y = textY,
+                y = nameY,
                 size = fontSize,
                 color = palette.onSurface,
                 shadow = false,
                 pipeline = ClientRenderPipeline.HUD_TEXT
             )
 
-            font.drawString(
+            val badgeX = rectX + rectW - padX - badgeW
+            val badgeY = rectY + (rectH - badgeH) * 0.5f
+
+            RenderUtils.roundedRect(
+                matrix = matrix,
+                x = badgeX,
+                y = badgeY,
+                width = badgeW,
+                height = badgeH,
+                color = badgeBg,
+                radius = badgeRadius,
+                pipeline = ClientRenderPipeline.HUD_RECT
+            )
+
+            val badgeTextY = badgeY + badgeH * 0.5f - badgeFontSize * 0.56f
+            font.drawCenteredString(
                 matrix = matrix,
                 text = hpText,
-                x = rectX + padX + nameW + gap,
-                y = textY,
-                size = fontSize,
+                centerX = badgeX + badgeW * 0.5f,
+                y = badgeTextY,
+                size = badgeFontSize,
                 color = hpColor,
                 shadow = false,
                 pipeline = ClientRenderPipeline.HUD_TEXT
@@ -154,14 +176,14 @@ object TagsModule : Module(
         }
     }
 
-    private fun getHealthColor(pct: Float, hasAbsorption: Boolean): Color4b {
+    private fun getHealthColor(pct: Float, hasAbsorption: Boolean, palette: M3Palette): Color4b {
         if (hasAbsorption && pct >= 0.99f) {
-            return absorptionhp
+            return absorptionHp
         }
         return if (pct < 0.5f) {
-            lowhp.interpolateTo(midhp, (pct * 2f).toDouble())
+            palette.error.interpolateTo(palette.tertiary, (pct * 2f).toDouble())
         } else {
-            midhp.interpolateTo(highhp, ((pct - 0.5f) * 2f).toDouble())
+            palette.tertiary.interpolateTo(palette.primary, ((pct - 0.5f) * 2f).toDouble())
         }
     }
 

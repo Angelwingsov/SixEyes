@@ -209,9 +209,8 @@ class Font(
 
         val pose = gfx.pose()
         pose.pushMatrix()
-        // 8x sub-pixel scaling for precise floating-point glyph placement
-        val invScale = 8f
-        val subScale = 0.125f
+        val invScale = 32f
+        val subScale = 1f / invScale
         pose.scale(subScale, subScale)
 
         try {
@@ -243,8 +242,8 @@ class Font(
                             var gx1 = Math.round((penX + glyph.x1 * size) * invScale)
                             val gy0 = Math.round((baselineY - glyph.y0 * size) * invScale)
                             var gy1 = Math.round((baselineY - glyph.y1 * size) * invScale)
-                            if (gx1 - gx0 < invScale.toInt()) gx1 = gx0 + invScale.toInt()
-                            if (gy1 - gy0 < invScale.toInt()) gy1 = gy0 + invScale.toInt()
+                            if (gx1 <= gx0) gx1 = gx0 + 1
+                            if (gy1 <= gy0) gy1 = gy0 + 1
 
                             gfx.innerBlit(
                                 pipeline,

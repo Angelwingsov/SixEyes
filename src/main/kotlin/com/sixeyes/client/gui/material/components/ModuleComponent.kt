@@ -75,19 +75,19 @@ class ModuleComponent(val module: Module) {
 
         val hasBind = module.key != InputConstants.UNKNOWN.value
         val showBindBadge = isBinding || hasBind
-        var maxNameWidth = width - 14f
+        var keyText = ""
+        var badgeX = 0f
+        var badgeW = 0f
 
         if (showBindBadge) {
-            val keyText = if (isBinding) "..." else KeybindSetting.formatKey(module.key)
+            keyText = if (isBinding) "..." else KeybindSetting.formatKey(module.key)
             val keyFontSize = 8.5f
             val keyTextW = Fonts.google_sans_medium.width(keyText, keyFontSize)
             val badgePadX = 4.5f
-            val badgeW = (keyTextW + badgePadX * 2f).coerceAtLeast(18f)
+            badgeW = (keyTextW + badgePadX * 2f).coerceAtLeast(18f)
             val badgeH = 14f
-            val badgeX = x + width - badgeW - 4.5f
+            badgeX = x + width - badgeW - 4.5f
             val badgeY = curY + (pillH - badgeH) * 0.5f
-
-            maxNameWidth = (badgeX - (x + 7f) - 4f).coerceAtLeast(20f)
 
             val badgeBg = if (isEnabled) {
                 if (isBinding) Color4b(33, 0, 93, 75) else Color4b(33, 0, 93, 40)
@@ -115,12 +115,25 @@ class ModuleComponent(val module: Module) {
                 matrix = matrix,
                 text = keyText,
                 centerX = badgeX + badgeW * 0.5f,
-                y = badgeY + 3f,
+                y = badgeY + 2.5f,
                 size = keyFontSize,
                 color = badgeTextCol,
                 shadow = false,
                 pipeline = ClientRenderPipeline.WINDOW_TEXT
             )
+        }
+
+        val isLongBind = showBindBadge && (keyText.length > 2 && keyText != "..." || badgeW > 24f)
+        val nameWAtDefault = Fonts.google_sans_medium.width(module.name, 10.5f)
+        val shouldAlignLeft = showBindBadge && (isLongBind || ((x + width * 0.5f) + nameWAtDefault * 0.5f > badgeX - 6f))
+
+        val maxNameWidth = if (shouldAlignLeft) {
+            (badgeX - (x + 7f) - 4f).coerceAtLeast(20f)
+        } else if (showBindBadge) {
+            val spaceToBadge = badgeX - (x + width * 0.5f) - 3f
+            if (spaceToBadge > 0f) minOf(width - 14f, (spaceToBadge * 2f).coerceAtLeast(20f)) else width - 14f
+        } else {
+            width - 14f
         }
 
         var nameSize = 10.5f
@@ -129,16 +142,31 @@ class ModuleComponent(val module: Module) {
             nameSize = (nameSize * (maxNameWidth / origNameW)).coerceIn(8f, 10.5f)
         }
 
-        Fonts.google_sans_medium.drawString(
-            matrix = matrix,
-            text = module.name,
-            x = x + 7f,
-            y = curY + (pillH - nameSize) * 0.5f,
-            size = nameSize,
-            color = modTextCol,
-            shadow = false,
-            pipeline = ClientRenderPipeline.WINDOW_TEXT
-        )
+        val textY = curY + (pillH - nameSize) * 0.5f - 0.5f
+
+        if (shouldAlignLeft) {
+            Fonts.google_sans_medium.drawString(
+                matrix = matrix,
+                text = module.name,
+                x = x + 7f,
+                y = textY,
+                size = nameSize,
+                color = modTextCol,
+                shadow = false,
+                pipeline = ClientRenderPipeline.WINDOW_TEXT
+            )
+        } else {
+            Fonts.google_sans_medium.drawCenteredString(
+                matrix = matrix,
+                text = module.name,
+                centerX = x + width * 0.5f,
+                y = textY,
+                size = nameSize,
+                color = modTextCol,
+                shadow = false,
+                pipeline = ClientRenderPipeline.WINDOW_TEXT
+            )
+        }
 
         curY += pillH
 

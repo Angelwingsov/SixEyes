@@ -2,7 +2,7 @@
 
 #include<scissor_check>
 
-precision mediump float;
+precision highp float;
 
 in vec4 FragColor;
 in vec2 TexCoord;
@@ -25,14 +25,18 @@ void main() {
     float scAlpha = applyScissor(Scissor, gl_FragCoord.xy);
 
     float thickness = Style.x;
-    float smoothness = Style.y;
     float outlineThickness = Style.z;
     bool hasOutline = outlineThickness > 0.0;
 
     float dist = median(texture(uTexture, TexCoord).rgb) - 0.5 + thickness;
-    vec2 d = vec2(dFdx(TexCoord.x), dFdy(TexCoord.y)) * textureSize(uTexture, 0);
-    float pixels = uRange * inversesqrt(max(dot(d, d), 1e-6));
-    float alpha = smoothstep(-smoothness, smoothness, dist * pixels);
+    vec2 unitRange = vec2(uRange) / vec2(textureSize(uTexture, 0));
+    vec2 dU = vec2(dFdx(TexCoord.x), dFdy(TexCoord.x));
+    vec2 dV = vec2(dFdx(TexCoord.y), dFdy(TexCoord.y));
+    vec2 screenTexSize = vec2(1.0) / max(vec2(length(dU), length(dV)), vec2(1e-6));
+    float screenPxRange = max(0.5 * dot(unitRange, screenTexSize), 1.0);
+
+    float pxDist = dist * screenPxRange;
+    float alpha = clamp(pxDist + 0.5, 0.0, 1.0);
 
     float minX = FadeParams.x;
     float maxX = FadeParams.y;
@@ -56,7 +60,7 @@ void main() {
     vec4 color = vec4(FragColor.rgb, FragColor.a * alpha * fadeAlpha);
 
     if (hasOutline) {
-        float outlineAlpha = smoothstep(-smoothness, smoothness, (dist + outlineThickness) * pixels);
+        float outlineAlpha = clamp((dist + outlineThickness) * screenPxRange + 0.5, 0.0, 1.0);
 
         vec4 outCol = OutlineColor;
         outCol.a *= fadeAlpha;

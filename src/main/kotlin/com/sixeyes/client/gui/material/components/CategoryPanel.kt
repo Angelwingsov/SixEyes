@@ -98,7 +98,7 @@ class CategoryPanel(
             matrix = matrix,
             text = category.displayName,
             centerX = x + width * 0.5f,
-            y = y + innerPadY + 8f,
+            y = y + innerPadY + 7.5f,
             size = 11.5f,
             color = palette.onSurface,
             shadow = false,
