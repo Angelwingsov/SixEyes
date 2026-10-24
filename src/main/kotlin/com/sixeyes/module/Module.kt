@@ -2,6 +2,7 @@ package com.sixeyes.module
 
 import com.mojang.blaze3d.platform.InputConstants
 import com.sixeyes.client.extensions.Category
+import com.sixeyes.client.extensions.SafeClientContext
 import com.sixeyes.client.interfaces.IToggable
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.event.EventManager
@@ -50,35 +51,161 @@ open class Module(
     open fun onDisable() {}
     open fun onEnable() {}
 
+    inline fun <R> safeRun(block: SafeClientContext.() -> R): R? =
+        com.sixeyes.client.extensions.safeRun(block)
+
     fun <T : Setting<*>> register(setting: T): T {
-        settings.add(setting)
+        if (!settings.contains(setting)) {
+            settings.add(setting)
+        }
         return setting
     }
 
-    fun boolean(name: String, value: Boolean, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(BooleanSetting(name, value, description, isVisible))
+    fun boolean(
+        name: String,
+        value: Boolean,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(BooleanSetting(name, value, description, isVisible))
 
-    fun number(name: String, value: Double, min: Double, max: Double, step: Double = 0.1, precision: Int = 1, unit: String = "", description: String = "", isVisible: () -> Boolean = { true }) =
-        register(NumberSetting(name, value, min, max, step, precision, unit, description, isVisible))
+    fun booleanSetting(
+        name: String,
+        value: Boolean,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = boolean(name, value, description, isVisible)
 
-    fun mode(name: String, value: String, modes: List<String>, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(ModeSetting(name, value, modes, description, isVisible))
+    fun number(
+        name: String,
+        value: Double,
+        min: Double,
+        max: Double,
+        step: Double = 0.1,
+        precision: Int = 1,
+        unit: String = "",
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(NumberSetting(name, value, min, max, step, precision, unit, description, isVisible))
 
-    fun multiMode(name: String, value: Set<String>, modes: List<String>, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(MultiModeSetting(name, value, modes, description, isVisible))
+    fun numberSetting(
+        name: String,
+        value: Double,
+        min: Double,
+        max: Double,
+        step: Double = 0.1,
+        precision: Int = 1,
+        unit: String = "",
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = number(name, value, min, max, step, precision, unit, description, isVisible)
 
-    fun color(name: String, value: Color4b, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(ColorSetting(name, value, hasAlpha, description, isVisible))
+    inline fun <reified E : Enum<E>> enum(
+        name: String,
+        defaultValue: E,
+        description: String = "",
+        noinline nameMapper: (E) -> String = { it.name },
+        noinline isVisible: () -> Boolean = { true }
+    ): EnumSetting<E> = register(
+        EnumSetting(name, defaultValue, enumValues<E>(), description, nameMapper, isVisible)
+    )
 
-    fun color(name: String, r: Int, g: Int, b: Int, a: Int = 255, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(ColorSetting(name, r, g, b, a, hasAlpha, description, isVisible))
+    inline fun <reified E : Enum<E>> enumSetting(
+        name: String,
+        defaultValue: E,
+        description: String = "",
+        noinline nameMapper: (E) -> String = { it.name },
+        noinline isVisible: () -> Boolean = { true }
+    ): EnumSetting<E> = enum(name, defaultValue, description, nameMapper, isVisible)
 
-    fun colorPicker(name: String, value: Color4b, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
-        color(name, value, hasAlpha, description, isVisible)
+    fun mode(
+        name: String,
+        value: String,
+        modes: List<String>,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(ModeSetting(name, value, modes, description, isVisible))
 
-    fun colorPicker(name: String, r: Int, g: Int, b: Int, a: Int = 255, hasAlpha: Boolean = true, description: String = "", isVisible: () -> Boolean = { true }) =
-        color(name, r, g, b, a, hasAlpha, description, isVisible)
+    fun modeSetting(
+        name: String,
+        value: String,
+        modes: List<String>,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = mode(name, value, modes, description, isVisible)
 
-    fun keybind(name: String, value: Int = InputConstants.UNKNOWN.value, description: String = "", isVisible: () -> Boolean = { true }) =
-        register(KeybindSetting(name, value, description, isVisible))
+    fun multiMode(
+        name: String,
+        value: Set<String>,
+        modes: List<String>,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(MultiModeSetting(name, value, modes, description, isVisible))
+
+    fun multiModeSetting(
+        name: String,
+        value: Set<String>,
+        modes: List<String>,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = multiMode(name, value, modes, description, isVisible)
+
+    fun color(
+        name: String,
+        value: Color4b,
+        hasAlpha: Boolean = true,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(ColorSetting(name, value, hasAlpha, description, isVisible))
+
+    fun colorSetting(
+        name: String,
+        value: Color4b,
+        hasAlpha: Boolean = true,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = color(name, value, hasAlpha, description, isVisible)
+
+    fun color(
+        name: String,
+        r: Int,
+        g: Int,
+        b: Int,
+        a: Int = 255,
+        hasAlpha: Boolean = true,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(ColorSetting(name, r, g, b, a, hasAlpha, description, isVisible))
+
+    fun colorPicker(
+        name: String,
+        value: Color4b,
+        hasAlpha: Boolean = true,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = color(name, value, hasAlpha, description, isVisible)
+
+    fun colorPicker(
+        name: String,
+        r: Int,
+        g: Int,
+        b: Int,
+        a: Int = 255,
+        hasAlpha: Boolean = true,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = color(name, r, g, b, a, hasAlpha, description, isVisible)
+
+    fun keybind(
+        name: String,
+        value: Int = InputConstants.UNKNOWN.value,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = register(KeybindSetting(name, value, description, isVisible))
+
+    fun keybindSetting(
+        name: String,
+        value: Int = InputConstants.UNKNOWN.value,
+        description: String = "",
+        isVisible: () -> Boolean = { true }
+    ) = keybind(name, value, description, isVisible)
 }

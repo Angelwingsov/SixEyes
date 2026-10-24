@@ -2,9 +2,6 @@ package com.sixeyes.module.modules.combat
 
 import com.sixeyes.client.extensions.COMBAT
 import com.sixeyes.client.extensions.currentScreen
-import com.sixeyes.client.extensions.inGame
-import com.sixeyes.client.extensions.mc
-import com.sixeyes.client.extensions.player
 import com.sixeyes.client.util.rotation.MoveFixMode
 import com.sixeyes.client.util.rotation.RotationManager
 import com.sixeyes.event.events.PlayerUpdateEvent
@@ -95,25 +92,25 @@ object HitAuraModule : Module(
     }
 
     // Target selection & Priority & FOV
-    val targets = multiMode(
+    val targets by multiMode(
         name = "Targets",
         value = setOf("Players", "Mobs", "Naked"),
         modes = listOf("Players", "Mobs", "Animals", "Invisibles", "Naked"),
         description = ""
     )
-    val targetMode = mode(
+    val targetMode by enum(
         name = "Target Mode",
-        value = "Single",
-        modes = TargetMode.names,
+        defaultValue = TargetMode.SINGLE,
+        nameMapper = { it.displayName },
         description = ""
     )
-    val priority = mode(
+    val priority by enum(
         name = "Priority",
-        value = "Distance",
-        modes = TargetPriority.names,
+        defaultValue = TargetPriority.DISTANCE,
+        nameMapper = { it.displayName },
         description = ""
     )
-    val fov = number(
+    val fov by number(
         name = "FOV",
         value = 180.0,
         min = 15.0,
@@ -125,7 +122,7 @@ object HitAuraModule : Module(
     )
 
     // Distances & RayTrace
-    val attackRange = number(
+    val attackRange by number(
         name = "Attack Range",
         value = 3.0,
         min = 1.0,
@@ -135,7 +132,7 @@ object HitAuraModule : Module(
         unit = "m",
         description = ""
     )
-    val aimRange = number(
+    val aimRange by number(
         name = "Aim Range",
         value = 4.2,
         min = 1.0,
@@ -145,31 +142,31 @@ object HitAuraModule : Module(
         unit = "m",
         description = ""
     )
-    val rayTrace = boolean(
+    val rayTrace by boolean(
         name = "RayTrace",
         value = true,
         description = ""
     )
-    val throughWalls = boolean(
+    val throughWalls by boolean(
         name = "Through Walls",
         value = false,
         description = ""
     )
 
     // Rotations, GCD & MoveFix
-    val rotationMode = mode(
+    val rotationMode by enum(
         name = "Rotation",
-        value = "Smooth",
-        modes = RotationMode.names,
+        defaultValue = RotationMode.SMOOTH,
+        nameMapper = { it.displayName },
         description = ""
     )
-    val aimPoint = mode(
+    val aimPoint by enum(
         name = "Aim Point",
-        value = "Multipoint",
-        modes = AimPointMode.names,
+        defaultValue = AimPointMode.MULTIPOINT,
+        nameMapper = { it.displayName },
         description = ""
     )
-    val rotationSpeed = number(
+    val rotationSpeed by number(
         name = "Rotation Speed",
         value = 75.0,
         min = 10.0,
@@ -178,28 +175,28 @@ object HitAuraModule : Module(
         precision = 0,
         unit = "°",
         description = "",
-        isVisible = { !rotationMode.isMode("Snap") }
+        isVisible = { rotationMode != RotationMode.SNAP }
     )
-    val gcdFix = boolean(
+    val gcdFix by boolean(
         name = "GCD Fix",
         value = true,
         description = ""
     )
-    val moveFix = mode(
+    val moveFix by enum(
         name = "Move Fix",
-        value = "Silent",
-        modes = listOf("Silent", "Strict", "Free", "Off"),
+        defaultValue = MoveFixMode.SILENT,
+        nameMapper = { it.displayName },
         description = ""
     )
 
     // Click Mode 1.8 / 1.9 & CPS & Randomization
-    val clickMode = mode(
+    val clickMode by enum(
         name = "Click Mode",
-        value = "1.9",
-        modes = ClickMode.names,
+        defaultValue = ClickMode.MODE_1_9,
+        nameMapper = { it.displayName },
         description = ""
     )
-    val cps = number(
+    val cps by number(
         name = "CPS",
         value = 12.0,
         min = 1.0,
@@ -207,15 +204,15 @@ object HitAuraModule : Module(
         step = 0.5,
         precision = 1,
         description = "",
-        isVisible = { clickMode.isMode("1.8") }
+        isVisible = { clickMode == ClickMode.MODE_1_8 }
     )
-    val cpsRandomization = boolean(
+    val cpsRandomization by boolean(
         name = "Randomization",
         value = true,
         description = "",
-        isVisible = { clickMode.isMode("1.8") }
+        isVisible = { clickMode == ClickMode.MODE_1_8 }
     )
-    val cpsSpread = number(
+    val cpsSpread by number(
         name = "Random Spread",
         value = 2.0,
         min = 0.5,
@@ -223,25 +220,25 @@ object HitAuraModule : Module(
         step = 0.5,
         precision = 1,
         description = "",
-        isVisible = { clickMode.isMode("1.8") && cpsRandomization.value }
+        isVisible = { clickMode == ClickMode.MODE_1_8 && cpsRandomization }
     )
 
     // Criticals & Sprint Reset
-    val onlyCrits = boolean(
+    val onlyCrits by boolean(
         name = "Only Crits",
         value = true,
         description = ""
     )
-    val smartCrits = boolean(
+    val smartCrits by boolean(
         name = "Smart Crits",
         value = true,
         description = "",
-        isVisible = { onlyCrits.value }
+        isVisible = { onlyCrits }
     )
-    val sprintReset = mode(
+    val sprintReset by enum(
         name = "Sprint Reset",
-        value = "Legit",
-        modes = SprintResetMode.names,
+        defaultValue = SprintResetMode.LEGIT,
+        nameMapper = { it.displayName },
         description = ""
     )
 
@@ -283,77 +280,79 @@ object HitAuraModule : Module(
 
     @Commando
     fun onUpdate(event: PlayerUpdateEvent) {
-        if (!inGame || player.isDeadOrDying) {
-            targetSelector.reset()
-            return
+        safeRun {
+            if (player.isDeadOrDying) {
+                targetSelector.reset()
+                return@safeRun
+            }
+
+            sprintResetProcessor.onTick()
+
+            if (shouldPreventSprint()) {
+                player.isSprinting = false
+            }
+
+            if (currentScreen != null) {
+                return@safeRun
+            }
+
+            val rotMode = rotationMode
+            val maxReach = if (rotMode == RotationMode.GRIM) attackRange.coerceAtMost(3.0) else attackRange
+            val effectiveAimRange = aimRange.coerceAtLeast(maxReach)
+            val priorityMode = priority
+            val tMode = targetMode
+
+            val target = targetSelector.updateTarget(
+                aimRange = effectiveAimRange,
+                fov = fov.toFloat(),
+                priority = priorityMode,
+                targetMode = tMode,
+                allowedTargets = targets,
+                throughWalls = throughWalls
+            ) ?: return@safeRun
+
+            val pointMode = aimPoint
+            val moveFixMode = moveFix
+            val cMode = clickMode
+            val sResetMode = sprintReset
+
+            val readyToAttackNow = attackExecutor.shouldPrepareAttack(
+                target = target,
+                attackRange = maxReach,
+                clickMode = cMode,
+                cps = cps,
+                randomizeCps = cpsRandomization,
+                cpsSpread = cpsSpread,
+                onlyCrits = onlyCrits,
+                smartCrits = smartCrits
+            )
+
+            rotationProcessor.processRotation(
+                target = target,
+                rotationMode = rotMode,
+                aimPointMode = pointMode,
+                rotationSpeed = rotationSpeed.toFloat(),
+                gcdEnabled = gcdFix,
+                moveFixMode = moveFixMode,
+                shouldSnapNow = readyToAttackNow
+            )
+
+            val enforceRayTrace = rayTrace || rotMode == RotationMode.GRIM
+
+            attackExecutor.tryAttack(
+                target = target,
+                attackRange = maxReach,
+                clickMode = cMode,
+                cps = cps,
+                randomizeCps = cpsRandomization,
+                cpsSpread = cpsSpread,
+                onlyCrits = onlyCrits,
+                smartCrits = smartCrits,
+                sprintResetMode = sResetMode,
+                rayTrace = enforceRayTrace,
+                throughWalls = throughWalls,
+                checkAimAngle = rotMode != RotationMode.SNAP
+            )
         }
-
-        sprintResetProcessor.onTick()
-
-        if (shouldPreventSprint()) {
-            player.isSprinting = false
-        }
-
-        if (currentScreen != null) {
-            return
-        }
-
-        val rotMode = RotationMode.fromName(rotationMode.value)
-        val maxReach = if (rotMode == RotationMode.GRIM) attackRange.value.coerceAtMost(3.0) else attackRange.value
-        val effectiveAimRange = aimRange.value.coerceAtLeast(maxReach)
-        val priorityMode = TargetPriority.fromName(priority.value)
-        val tMode = TargetMode.fromName(targetMode.value)
-
-        val target = targetSelector.updateTarget(
-            aimRange = effectiveAimRange,
-            fov = fov.getFloat(),
-            priority = priorityMode,
-            targetMode = tMode,
-            allowedTargets = targets.value,
-            throughWalls = throughWalls.value
-        ) ?: return
-
-        val pointMode = AimPointMode.fromName(aimPoint.value)
-        val moveFixMode = MoveFixMode.fromName(moveFix.value)
-        val cMode = ClickMode.fromName(clickMode.value)
-        val sResetMode = SprintResetMode.fromName(sprintReset.value)
-
-        val readyToAttackNow = attackExecutor.shouldPrepareAttack(
-            target = target,
-            attackRange = maxReach,
-            clickMode = cMode,
-            cps = cps.value,
-            randomizeCps = cpsRandomization.value,
-            cpsSpread = cpsSpread.value,
-            onlyCrits = onlyCrits.value,
-            smartCrits = smartCrits.value
-        )
-
-        rotationProcessor.processRotation(
-            target = target,
-            rotationMode = rotMode,
-            aimPointMode = pointMode,
-            rotationSpeed = rotationSpeed.getFloat(),
-            gcdEnabled = gcdFix.value,
-            moveFixMode = moveFixMode,
-            shouldSnapNow = readyToAttackNow
-        )
-
-        val enforceRayTrace = rayTrace.value || rotMode == RotationMode.GRIM
-
-        attackExecutor.tryAttack(
-            target = target,
-            attackRange = maxReach,
-            clickMode = cMode,
-            cps = cps.value,
-            randomizeCps = cpsRandomization.value,
-            cpsSpread = cpsSpread.value,
-            onlyCrits = onlyCrits.value,
-            smartCrits = smartCrits.value,
-            sprintResetMode = sResetMode,
-            rayTrace = enforceRayTrace,
-            throughWalls = throughWalls.value,
-            checkAimAngle = rotMode != RotationMode.SNAP
-        )
     }
 }

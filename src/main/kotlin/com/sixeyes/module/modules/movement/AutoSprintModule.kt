@@ -4,7 +4,6 @@ import com.sixeyes.client.extensions.MOVEMENT
 import com.sixeyes.client.extensions.currentScreen
 import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.mc
-import com.sixeyes.client.extensions.player
 import com.sixeyes.client.util.movement.MoveUtil
 import com.sixeyes.event.events.PlayerUpdateEvent
 import com.sixeyes.module.Module
@@ -33,17 +32,17 @@ object AutoSprintModule : Module(
 
     @Commando
     fun onUpdate(event: PlayerUpdateEvent) {
-        if (!inGame) return
+        safeRun {
+            if (HitAuraModule.shouldPreventSprint() || InventoryMoveModule.shouldPreventSprint()) {
+                player.isSprinting = false
+                return@safeRun
+            }
 
-        if (HitAuraModule.shouldPreventSprint() || InventoryMoveModule.shouldPreventSprint()) {
-            player.isSprinting = false
-            return
-        }
-
-        if (shouldSprint()) {
-            mc.options.keySprint.isDown = true
-        } else {
-            mc.options.keySprint.isDown = MoveUtil.isKeyPressed(mc.options.keySprint)
+            if (shouldSprint()) {
+                mc.options.keySprint.isDown = true
+            } else {
+                mc.options.keySprint.isDown = MoveUtil.isKeyPressed(mc.options.keySprint)
+            }
         }
     }
 }

@@ -30,6 +30,7 @@ class ModuleComponent(val module: Module) {
             when (setting) {
                 is BooleanSetting -> settingComponents.add(BooleanComponent(setting))
                 is NumberSetting -> settingComponents.add(NumberComponent(setting))
+                is EnumSetting<*> -> settingComponents.add(ModeComponent(setting))
                 is ModeSetting -> settingComponents.add(ModeComponent(setting))
                 is MultiModeSetting -> settingComponents.add(ModeComponent(setting))
                 is ColorSetting -> settingComponents.add(ColorComponent(setting))

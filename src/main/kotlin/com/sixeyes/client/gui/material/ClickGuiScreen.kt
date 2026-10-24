@@ -62,7 +62,7 @@ object ClickGuiScreen : Screen(Component.literal("SixEyes ClickGUI")), IRenderab
         val screenW = mc.window.guiScaledWidth.toFloat()
         val screenH = mc.window.guiScaledHeight.toFloat()
 
-        if (ClickGuiModule.blur.value && mc.options.getMenuBackgroundBlurriness() == 0) {
+        if (ClickGuiModule.blur && mc.options.getMenuBackgroundBlurriness() == 0) {
             RenderUtils.rect(
                 matrix = matrix,
                 x = 0f,

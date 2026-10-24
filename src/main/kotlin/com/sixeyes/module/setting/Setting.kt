@@ -1,5 +1,6 @@
 package com.sixeyes.module.setting
 
+import com.sixeyes.module.Module
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -11,6 +12,13 @@ abstract class Setting<T>(
     val isVisible: () -> Boolean = { true }
 ) : ReadWriteProperty<Any?, T> {
     private val listeners = mutableListOf<(T) -> Unit>()
+
+    operator fun provideDelegate(thisRef: Any?, prop: KProperty<*>): Setting<T> {
+        if (thisRef is Module && !thisRef.settings.contains(this)) {
+            thisRef.settings.add(this)
+        }
+        return this
+    }
 
     fun addListener(listener: (T) -> Unit): Setting<T> {
         listeners.add(listener)

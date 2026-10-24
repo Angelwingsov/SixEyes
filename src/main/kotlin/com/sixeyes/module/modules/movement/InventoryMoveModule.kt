@@ -35,8 +35,8 @@ object InventoryMoveModule : Module(
     category = MOVEMENT,
     description = ""
 ) {
-    val sneak = boolean("Sneak", false, "")
-    val slowness = boolean("Slowness", false, "")
+    val sneak by boolean("Sneak", false, "")
+    val slowness by boolean("Slowness", false, "")
 
     private val packetQueue = ArrayDeque<Packet<*>>()
     private val timerUtil = TimerUtil()
@@ -53,33 +53,33 @@ object InventoryMoveModule : Module(
 
     @Commando
     fun onUpdate(event: PlayerUpdateEvent) {
-        if (!inGame) return
+        safeRun {
+            if (!timerUtil.isComplete(100) && slowness) {
+                slowed = true
+                MoveUtil.resetMovementKeys()
+                player.isSprinting = false
+                return@safeRun
+            }
 
-        if (!timerUtil.isComplete(100) && slowness.value) {
-            slowed = true
-            MoveUtil.resetMovementKeys()
-            mc.player?.isSprinting = false
-            return
-        }
+            slowed = false
 
-        slowed = false
+            if (packetQueue.isNotEmpty() && !flushing && !MoveUtil.isMoving() && !mc.options.keyJump.isDown && timerUtil.isComplete(100)) {
+                flushPackets()
+            }
 
-        if (packetQueue.isNotEmpty() && !flushing && !MoveUtil.isMoving() && !mc.options.keyJump.isDown && timerUtil.isComplete(100)) {
-            flushPackets()
-        }
-
-        val screen = currentScreen ?: return
-        if (isTypingScreen(screen)) return
-        MoveUtil.updateMovementKeys(includeSneak = sneak.value)
-        if (slowness.value && screen is AbstractContainerScreen<*>) {
-            mc.options.keySprint.isDown = false
-            mc.player?.isSprinting = false
+            val screen = currentScreen ?: return@safeRun
+            if (isTypingScreen(screen)) return@safeRun
+            MoveUtil.updateMovementKeys(includeSneak = sneak)
+            if (slowness && screen is AbstractContainerScreen<*>) {
+                mc.options.keySprint.isDown = false
+                player.isSprinting = false
+            }
         }
     }
 
     @Commando
     fun onPacket(event: PacketSendEvent) {
-        if (!slowness.value || flushing) return
+        if (!slowness || flushing) return
 
         val packet = event.packet
         if (isContainerActionPacket(packet) && currentScreen is AbstractContainerScreen<*>) {
@@ -93,7 +93,7 @@ object InventoryMoveModule : Module(
                 timerUtil.reset()
                 slowed = true
                 MoveUtil.resetMovementKeys()
-                mc.player?.isSprinting = false
+                safeRun { player.isSprinting = false }
             }
         }
     }
@@ -101,7 +101,7 @@ object InventoryMoveModule : Module(
     @Commando
     fun onCloseScreen(event: ScreenCloseEvent) {
         val screen = event.screen
-        if (screen is AbstractContainerScreen<*> && packetQueue.isNotEmpty() && slowness.value && !flushing) {
+        if (screen is AbstractContainerScreen<*> && packetQueue.isNotEmpty() && slowness && !flushing) {
             event.cancel = true
             if (closingPending) return
 
@@ -119,10 +119,10 @@ object InventoryMoveModule : Module(
         }
     }
 
-    fun slownessIsEnabled(): Boolean = slowness.value
+    fun slownessIsEnabled(): Boolean = slowness
 
     fun shouldPreventSprint(): Boolean {
-        if (!isEnabled() || !slowness.value) return false
+        if (!isEnabled() || !slowness) return false
         return slowed || currentScreen is AbstractContainerScreen<*>
     }
 

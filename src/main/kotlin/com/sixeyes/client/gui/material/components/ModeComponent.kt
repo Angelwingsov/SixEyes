@@ -5,6 +5,7 @@ import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
+import com.sixeyes.module.setting.EnumSetting
 import com.sixeyes.module.setting.ModeSetting
 import com.sixeyes.module.setting.MultiModeSetting
 import com.sixeyes.module.setting.Setting
@@ -29,6 +30,13 @@ class ModeComponent(
         modes = multiModeSetting.modes,
         isSelected = multiModeSetting::isSelected,
         onSelect = multiModeSetting::toggle
+    )
+
+    constructor(enumSetting: EnumSetting<*>) : this(
+        setting = enumSetting,
+        modes = enumSetting.modes,
+        isSelected = { enumSetting.isMode(it) },
+        onSelect = { enumSetting.selectByName(it) }
     )
 
     private data class ChipRect(

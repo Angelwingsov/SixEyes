@@ -13,7 +13,7 @@ object ClickGuiModule : Module(
     description = "Material 3 DropDown Graphical User Interface",
     key = InputConstants.KEY_RSHIFT
 ) {
-    val blur = boolean(
+    val blur by boolean(
         name = "Background Scrim",
         value = true,
         description = "Dim background behind the GUI"
