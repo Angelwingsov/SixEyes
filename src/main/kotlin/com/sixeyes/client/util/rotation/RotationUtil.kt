@@ -23,10 +23,13 @@ object RotationUtil {
         return Rotation(yaw, pitch)
     }
 
-    fun getNearestPoint(eyePos: Vec3, box: AABB): Vec3 {
-        val x = eyePos.x.coerceIn(box.minX, box.maxX)
-        val y = eyePos.y.coerceIn(box.minY, box.maxY)
-        val z = eyePos.z.coerceIn(box.minZ, box.maxZ)
+    fun getNearestPoint(eyePos: Vec3, box: AABB, marginRatio: Double = 0.0): Vec3 {
+        val marginX = (box.maxX - box.minX) * marginRatio
+        val marginY = (box.maxY - box.minY) * marginRatio
+        val marginZ = (box.maxZ - box.minZ) * marginRatio
+        val x = eyePos.x.coerceIn(box.minX + marginX, box.maxX - marginX)
+        val y = eyePos.y.coerceIn(box.minY + marginY, box.maxY - marginY)
+        val z = eyePos.z.coerceIn(box.minZ + marginZ, box.maxZ - marginZ)
         return Vec3(x, y, z)
     }
 

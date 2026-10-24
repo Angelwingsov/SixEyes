@@ -75,6 +75,7 @@ object RotationManager : Listener() {
         previousRotation = null
         keepTicks = 0
         updatedThisTick = false
+        MoveFixProcessor.reset()
     }
 
     fun onPreUpdate() {

@@ -55,16 +55,28 @@ class AttackExecutor(
         }
 
         if (rayTrace) {
-            val hitsHitbox = RayTraceUtil.isLookingAtEntity(
+            val currentRot = RotationManager.getServerRotation()
+            val hitsCurrentHitbox = RayTraceUtil.isLookingAtEntity(
                 target = target,
-                rotation = RotationManager.getServerRotation(),
+                rotation = currentRot,
                 range = attackRange,
                 throughWalls = throughWalls
             )
-            if (!hitsHitbox) {
+            if (!hitsCurrentHitbox) {
                 return false
             }
-        } else if (checkAimAngle && !rotationProcessor.isAimedAtTarget(target, 32.0f)) {
+
+            val previousRot = RotationManager.getPreviousServerRotation()
+            val hitsServerHitbox = RayTraceUtil.isLookingAtEntity(
+                target = target,
+                rotation = previousRot,
+                range = attackRange,
+                throughWalls = throughWalls
+            )
+            if (!hitsServerHitbox) {
+                return false
+            }
+        } else if (checkAimAngle && !rotationProcessor.isAimedAtTarget(target, 28.0f)) {
             return false
         }
 
@@ -74,9 +86,15 @@ class AttackExecutor(
         val itemStack = player.getItemInHand(InteractionHand.MAIN_HAND)
         val swingAnimation = itemStack.attackAnimation
 
-        gameMode.attack(player, target)
-        player.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
-        sendPacket(ServerboundPunchPacket.INSTANCE)
+        if (clickMode == ClickMode.MODE_1_8) {
+            player.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
+            sendPacket(ServerboundPunchPacket.INSTANCE)
+            gameMode.attack(player, target)
+        } else {
+            gameMode.attack(player, target)
+            player.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
+            sendPacket(ServerboundPunchPacket.INSTANCE)
+        }
 
         sprintResetProcessor.postAttack(sprintResetMode)
         clickerProcessor.onAttackExecuted(clickMode, cps, randomizeCps, cpsSpread)

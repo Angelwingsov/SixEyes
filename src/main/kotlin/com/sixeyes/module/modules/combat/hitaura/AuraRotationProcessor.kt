@@ -104,7 +104,7 @@ class AuraRotationProcessor {
         val box = target.box
         val eyePos = player.eyePosition
         return when (aimPointMode) {
-            AimPointMode.NEAREST -> RotationUtil.getNearestPoint(eyePos, box)
+            AimPointMode.NEAREST -> RotationUtil.getNearestPoint(eyePos, box, 0.10)
             AimPointMode.MULTIPOINT -> RotationUtil.getMultipoint(eyePos, box, 0.78)
             AimPointMode.HEAD -> Vec3(
                 box.center.x,

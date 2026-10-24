@@ -8,6 +8,7 @@
     "client": [
         "MixinLocalPlayer",
         "MixinKeyboardInput",
+        "MixinClientInput",
         "MixinEntity",
         "MixinLivingEntity",
         "MixinLivingEntityRenderer",

@@ -3,6 +3,7 @@ package com.sixeyes.module.modules.combat
 import com.sixeyes.client.extensions.COMBAT
 import com.sixeyes.client.extensions.currentScreen
 import com.sixeyes.client.extensions.inGame
+import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.extensions.player
 import com.sixeyes.client.util.rotation.MoveFixMode
 import com.sixeyes.client.util.rotation.RotationManager
@@ -262,11 +263,7 @@ object HitAuraModule : Module(
 
     fun shouldPreventSprint(): Boolean {
         if (!isEnabled()) return false
-        if (sprintResetProcessor.isResettingSprint()) return true
-        if (onlyCrits.value && inGame && !player.onGround() && currentTarget != null) {
-            return true
-        }
-        return false
+        return sprintResetProcessor.isResettingSprint()
     }
 
     override fun onEnable() {
@@ -293,11 +290,17 @@ object HitAuraModule : Module(
 
         sprintResetProcessor.onTick()
 
+        if (shouldPreventSprint()) {
+            player.isSprinting = false
+        }
+
         if (currentScreen != null) {
             return
         }
 
-        val effectiveAimRange = aimRange.value.coerceAtLeast(attackRange.value)
+        val rotMode = RotationMode.fromName(rotationMode.value)
+        val maxReach = if (rotMode == RotationMode.GRIM) attackRange.value.coerceAtMost(3.0) else attackRange.value
+        val effectiveAimRange = aimRange.value.coerceAtLeast(maxReach)
         val priorityMode = TargetPriority.fromName(priority.value)
         val tMode = TargetMode.fromName(targetMode.value)
 
@@ -310,7 +313,6 @@ object HitAuraModule : Module(
             throughWalls = throughWalls.value
         ) ?: return
 
-        val rotMode = RotationMode.fromName(rotationMode.value)
         val pointMode = AimPointMode.fromName(aimPoint.value)
         val moveFixMode = MoveFixMode.fromName(moveFix.value)
         val cMode = ClickMode.fromName(clickMode.value)
@@ -318,7 +320,7 @@ object HitAuraModule : Module(
 
         val readyToAttackNow = attackExecutor.shouldPrepareAttack(
             target = target,
-            attackRange = attackRange.value,
+            attackRange = maxReach,
             clickMode = cMode,
             cps = cps.value,
             randomizeCps = cpsRandomization.value,
@@ -337,9 +339,11 @@ object HitAuraModule : Module(
             shouldSnapNow = readyToAttackNow
         )
 
+        val enforceRayTrace = rayTrace.value || rotMode == RotationMode.GRIM
+
         attackExecutor.tryAttack(
             target = target,
-            attackRange = attackRange.value,
+            attackRange = maxReach,
             clickMode = cMode,
             cps = cps.value,
             randomizeCps = cpsRandomization.value,
@@ -347,7 +351,7 @@ object HitAuraModule : Module(
             onlyCrits = onlyCrits.value,
             smartCrits = smartCrits.value,
             sprintResetMode = sResetMode,
-            rayTrace = rayTrace.value,
+            rayTrace = enforceRayTrace,
             throughWalls = throughWalls.value,
             checkAimAngle = rotMode != RotationMode.SNAP
         )

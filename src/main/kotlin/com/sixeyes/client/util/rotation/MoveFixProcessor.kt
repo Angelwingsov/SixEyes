@@ -1,5 +1,7 @@
 package com.sixeyes.client.util.rotation
 
+import com.sixeyes.client.extensions.mc
+import com.sixeyes.client.util.movement.MoveUtil
 import net.minecraft.client.player.ClientInput
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Input
@@ -11,6 +13,9 @@ import kotlin.math.sin
 object MoveFixProcessor {
     private const val OCTANT_THRESHOLD = 0.38268343f // sin(22.5 deg)
 
+    var hasForwardInput: Boolean = false
+        private set
+
     private fun calculateImpulse(positive: Boolean, negative: Boolean): Float {
         return when {
             positive == negative -> 0.0f
@@ -19,25 +24,35 @@ object MoveFixProcessor {
         }
     }
 
+    fun shouldOverrideForwardImpulse(input: ClientInput): Boolean {
+        return hasForwardInput
+    }
+
+    fun reset() {
+        hasForwardInput = false
+    }
+
     fun applyMoveFix(
         input: ClientInput,
         mode: MoveFixMode,
         serverYaw: Float,
         cameraYaw: Float
     ) {
+        val rawForward = calculateImpulse(
+            input.keyPresses.forward(),
+            input.keyPresses.backward()
+        )
+        val rawLeft = calculateImpulse(
+            input.keyPresses.left(),
+            input.keyPresses.right()
+        )
+        hasForwardInput = rawForward > 0.0f
+
         when (mode) {
             MoveFixMode.OFF, MoveFixMode.STRICT -> {
                 return
             }
             MoveFixMode.FREE -> {
-                val rawForward = calculateImpulse(
-                    input.keyPresses.forward(),
-                    input.keyPresses.backward()
-                )
-                val rawLeft = calculateImpulse(
-                    input.keyPresses.left(),
-                    input.keyPresses.right()
-                )
                 if (rawForward == 0.0f && rawLeft == 0.0f) return
 
                 val deltaRad = Math.toRadians((cameraYaw - serverYaw).toDouble()).toFloat()
@@ -48,16 +63,22 @@ object MoveFixProcessor {
                 val newLeft = rawLeft * cos - rawForward * sin
 
                 input.moveVector = Vec2(newLeft, newForward).normalized()
+
+                val currentKeys = input.keyPresses
+                val wantsSprint = currentKeys.sprint() || MoveUtil.isKeyPressed(mc.options.keySprint) || (mc.player?.isSprinting == true && hasForwardInput)
+                if (wantsSprint != currentKeys.sprint()) {
+                    input.keyPresses = Input(
+                        currentKeys.forward(),
+                        currentKeys.backward(),
+                        currentKeys.left(),
+                        currentKeys.right(),
+                        currentKeys.jump(),
+                        currentKeys.shift(),
+                        wantsSprint
+                    )
+                }
             }
             MoveFixMode.SILENT -> {
-                val rawForward = calculateImpulse(
-                    input.keyPresses.forward(),
-                    input.keyPresses.backward()
-                )
-                val rawLeft = calculateImpulse(
-                    input.keyPresses.left(),
-                    input.keyPresses.right()
-                )
                 val length = hypot(rawForward, rawLeft)
                 if (length <= 1e-4f) return
 
@@ -77,7 +98,7 @@ object MoveFixProcessor {
                 val rightKey = rotLeft < -OCTANT_THRESHOLD
 
                 val currentKeys = input.keyPresses
-                val sprintKey = currentKeys.sprint() && forwardKey && !backwardKey
+                val wantsSprint = currentKeys.sprint() || MoveUtil.isKeyPressed(mc.options.keySprint) || (mc.player?.isSprinting == true && hasForwardInput)
 
                 input.keyPresses = Input(
                     forwardKey,
@@ -86,7 +107,7 @@ object MoveFixProcessor {
                     rightKey,
                     currentKeys.jump(),
                     currentKeys.shift(),
-                    sprintKey
+                    wantsSprint
                 )
 
                 val f = calculateImpulse(forwardKey, backwardKey)

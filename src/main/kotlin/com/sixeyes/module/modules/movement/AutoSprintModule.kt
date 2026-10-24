@@ -36,7 +36,6 @@ object AutoSprintModule : Module(
         if (!inGame) return
 
         if (HitAuraModule.shouldPreventSprint() || InventoryMoveModule.shouldPreventSprint()) {
-            mc.options.keySprint.isDown = false
             player.isSprinting = false
             return
         }

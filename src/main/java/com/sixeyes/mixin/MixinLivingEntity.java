@@ -1,5 +1,6 @@
 package com.sixeyes.mixin;
 
+import com.sixeyes.client.util.rotation.MoveFixMode;
 import com.sixeyes.client.util.rotation.Rotation;
 import com.sixeyes.client.util.rotation.RotationManager;
 import net.minecraft.client.Minecraft;
@@ -22,6 +23,11 @@ public class MixinLivingEntity {
     )
     private float redirectJumpYaw(LivingEntity instance) {
         if (instance == Minecraft.getInstance().player) {
+            if (RotationManager.INSTANCE.isActive() &&
+                (RotationManager.INSTANCE.getActiveMoveFix() == MoveFixMode.SILENT ||
+                 RotationManager.INSTANCE.getActiveMoveFix() == MoveFixMode.FREE)) {
+                return instance.getYRot();
+            }
             return RotationManager.INSTANCE.getMovementYaw(instance.getYRot());
         }
         return instance.getYRot();
