@@ -261,7 +261,12 @@ object HitAuraModule : Module(
         get() = targetSelector.currentTarget
 
     fun shouldPreventSprint(): Boolean {
-        return isEnabled() && sprintResetProcessor.isResettingSprint()
+        if (!isEnabled()) return false
+        if (sprintResetProcessor.isResettingSprint()) return true
+        if (onlyCrits.value && inGame && !player.onGround() && currentTarget != null) {
+            return true
+        }
+        return false
     }
 
     override fun onEnable() {

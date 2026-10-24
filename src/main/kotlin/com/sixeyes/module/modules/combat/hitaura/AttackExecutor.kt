@@ -68,7 +68,8 @@ class AttackExecutor(
             return false
         }
 
-        sprintResetProcessor.preAttack(sprintResetMode)
+        val isCritAttack = onlyCrits && criticalProcessor.isFallingForCrit()
+        sprintResetProcessor.preAttack(sprintResetMode, forceStopSprint = isCritAttack)
 
         val itemStack = player.getItemInHand(InteractionHand.MAIN_HAND)
         val swingAnimation = itemStack.attackAnimation

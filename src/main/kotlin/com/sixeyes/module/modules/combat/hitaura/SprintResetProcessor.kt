@@ -34,31 +34,48 @@ class SprintResetProcessor {
         }
     }
 
-    fun preAttack(mode: SprintResetMode) {
-        if (!inGame || mode == SprintResetMode.OFF) return
+    fun preAttack(mode: SprintResetMode, forceStopSprint: Boolean = false) {
+        if (!inGame) return
+        if (mode == SprintResetMode.OFF && !forceStopSprint) return
 
         wasSprintingBeforeAttack = player.isSprinting || player.wasSprinting
         if (!wasSprintingBeforeAttack) return
 
         when (mode) {
             SprintResetMode.PACKET -> {
-                if (player.wasSprinting) {
+                sendPacket(
+                    ServerboundPlayerCommandPacket(
+                        player,
+                        ServerboundPlayerCommandPacket.Action.STOP_SPRINTING
+                    )
+                )
+                player.isSprinting = false
+                player.wasSprinting = false
+            }
+            SprintResetMode.LEGIT -> {
+                sendPacket(
+                    ServerboundPlayerCommandPacket(
+                        player,
+                        ServerboundPlayerCommandPacket.Action.STOP_SPRINTING
+                    )
+                )
+                player.isSprinting = false
+                player.wasSprinting = false
+                mc.options.keySprint.isDown = false
+                legitResetTicks = 2
+            }
+            SprintResetMode.OFF -> {
+                if (forceStopSprint) {
                     sendPacket(
                         ServerboundPlayerCommandPacket(
                             player,
                             ServerboundPlayerCommandPacket.Action.STOP_SPRINTING
                         )
                     )
+                    player.isSprinting = false
                     player.wasSprinting = false
                 }
-                player.isSprinting = false
             }
-            SprintResetMode.LEGIT -> {
-                player.isSprinting = false
-                mc.options.keySprint.isDown = false
-                legitResetTicks = 2
-            }
-            SprintResetMode.OFF -> {}
         }
     }
 

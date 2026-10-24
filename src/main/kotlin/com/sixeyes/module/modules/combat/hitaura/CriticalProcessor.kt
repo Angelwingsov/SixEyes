@@ -16,13 +16,18 @@ class CriticalProcessor {
         }
 
         if (smartCrits) {
-            val isJumpingOrAirborne = !player.onGround() || mc.options.keyJump.isDown
+            val isJumpingOrAirborne = !player.onGround() || mc.options.keyJump.isDown || MoveUtil.isKeyPressed(mc.options.keyJump)
             if (!isJumpingOrAirborne) {
                 return true
             }
         }
 
-        return !player.onGround() && player.deltaMovement.y < 0.0
+        return isFallingForCrit()
+    }
+
+    fun isFallingForCrit(): Boolean {
+        if (!inGame) return false
+        return !player.onGround() && player.fallDistance > 0.0 && player.deltaMovement.y < 0.0
     }
 
     private fun canPerformCrit(): Boolean {
