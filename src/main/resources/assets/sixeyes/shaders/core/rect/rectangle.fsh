@@ -24,7 +24,7 @@ in vec2 fragCoord;
 
 uniform sampler2D uTexture;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 vec4 interpolateCornerColors(vec2 uv) {
     vec4 topColor = mix(TopLeftColor, TopRightColor, uv.x);

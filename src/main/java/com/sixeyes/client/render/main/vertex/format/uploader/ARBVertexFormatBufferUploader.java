@@ -12,15 +12,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ARBVertexFormatBufferUploader extends VertexFormatBufferUploader {
-    private final boolean applyMesaWorkaround;
 
     protected ARBVertexFormatBufferUploader() {
-        if ("Mesa".equals(GL30.glGetString(GL30.GL_VENDOR))) {
-            String string = GL30.glGetString(GL30.GL_VERSION);
-            applyMesaWorkaround = string.contains("25.0.0") || string.contains("25.0.1") || string.contains("25.0.2");
-        } else {
-            applyMesaWorkaround = false;
-        }
     }
 
     @Override
@@ -28,14 +21,8 @@ public class ARBVertexFormatBufferUploader extends VertexFormatBufferUploader {
         VertexFormatBuffer vertexFormatBuffer = vertexFormat.getVertexFormatBufferOrCreate(() -> createVertexFormatBuffer(vertexFormat));
 
         GL30.glBindVertexArray(vertexFormatBuffer.glId());
-        if (vertexFormatBuffer.buffer().get() != vertexBuffer) {
-            if (applyMesaWorkaround && vertexFormatBuffer.buffer().get() != null && vertexFormatBuffer.buffer().get().id == vertexBuffer.id) {
-                ARBVertexAttribBinding.glBindVertexBuffer(0, 0, 0L, 0);
-            }
-
-            ARBVertexAttribBinding.glBindVertexBuffer(0, vertexBuffer.id, 0L, vertexFormat.vertexSize);
-            vertexFormatBuffer.buffer().set(vertexBuffer);
-        }
+        ARBVertexAttribBinding.glBindVertexBuffer(0, vertexBuffer.id, 0L, vertexFormat.vertexSize);
+        vertexFormatBuffer.buffer().set(vertexBuffer);
     }
 
     @Override

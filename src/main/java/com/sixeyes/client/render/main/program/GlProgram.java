@@ -67,7 +67,7 @@ public class GlProgram implements Bindable, Compilable, Closeable {
         CompileStatus status = CompileStatus.fromStatusId(GL20.glGetProgrami(id, GL20.GL_LINK_STATUS));
         return new CompileResult(
                 status,
-                status == CompileStatus.FAILURE ? StringUtils.trim(GL20.glGetProgramInfoLog(buffersIndexAmount)) : ""
+                status == CompileStatus.FAILURE ? StringUtils.trim(GL20.glGetProgramInfoLog(id)) : ""
         );
     }
 

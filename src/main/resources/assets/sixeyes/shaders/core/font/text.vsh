@@ -1,12 +1,12 @@
 #version 330 core
 
-in vec4 Position;
-in vec2 UV0;
-in vec4 Color;
-in vec3 Style0;
-in vec4 OutlineColor0;
-in vec4 Fade0;
-in vec4 Scissor0;
+layout(location = 0) in vec4 Position;
+layout(location = 1) in vec2 UV0;
+layout(location = 2) in vec4 Color;
+layout(location = 3) in vec3 Style0;
+layout(location = 4) in vec4 OutlineColor0;
+layout(location = 5) in vec4 Fade0;
+layout(location = 6) in vec4 Scissor0;
 
 #include<matrices>
 

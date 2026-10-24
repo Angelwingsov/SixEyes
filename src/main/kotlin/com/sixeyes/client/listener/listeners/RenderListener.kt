@@ -97,6 +97,7 @@ object RenderListener : Listener() {
         val device = RenderSystem.tryGetDevice() ?: return false
         val detected = when {
             device is FrontendGpuDevice -> device.backend is GlDevice
+            device is GlDevice -> true
             else -> {
                 val backendName = runCatching {
                     val info = device.javaClass.getMethod("getDeviceInfo").invoke(device)
@@ -212,3 +213,4 @@ object RenderListener : Listener() {
             .build()
     }
 }
+

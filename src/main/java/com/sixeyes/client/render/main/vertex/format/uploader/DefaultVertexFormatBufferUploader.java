@@ -16,29 +16,28 @@ public class DefaultVertexFormatBufferUploader extends VertexFormatBufferUploade
         VertexFormatBuffer vertexFormatBuffer = vertexFormat.getVertexFormatBufferOrCreate(() -> createVertexFormatBuffer(vertexFormat));
 
         GL30.glBindVertexArray(vertexFormatBuffer.glId());
-        if (vertexFormatBuffer.buffer().get() != vertexBuffer) {
-            vertexBuffer.bind();
-            vertexFormatBuffer.buffer().set(vertexBuffer);
-            setupBuffer(vertexFormat, false);
-        }
+        vertexBuffer.bind();
+        setupBuffer(vertexFormat);
+        vertexFormatBuffer.buffer().set(vertexBuffer);
     }
 
     @Override
     public VertexFormatBuffer createVertexFormatBuffer(VertexFormat vertexFormat) {
         int i = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(i);
-        setupBuffer(vertexFormat, true);
+        List<VertexElement> list = vertexFormat.vertexElements;
+        for (int j = 0; j < list.size(); j++) {
+            GL30.glEnableVertexAttribArray(j);
+        }
         return new VertexFormatBuffer(i, vertexFormat, new AtomicReference<>());
     }
 
-    private void setupBuffer(VertexFormat format, boolean vbaIsNew) {
+    private void setupBuffer(VertexFormat format) {
         int i = format.vertexSize;
         List<VertexElement> list = format.vertexElements;
 
         for (int j = 0; j < list.size(); j++) {
             VertexElement vertexElement = list.get(j);
-            if (vbaIsNew)
-                GL30.glEnableVertexAttribArray(j);
 
             if (vertexElement.getType().glId() == GL11.GL_FLOAT) {
                 GL30.glVertexAttribPointer(

@@ -1,5 +1,6 @@
 package com.sixeyes.client.render.main;
 
+import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.backend.opengl.DirectStateAccess;
 import com.mojang.renderpearl.backend.opengl.FrameBufferAttachment;
 import com.mojang.renderpearl.backend.opengl.FrameBufferCache;
@@ -25,7 +26,8 @@ public final class FrameBufferUtils {
         if (depthTexture != null)
             validateFrameBufferTexture("Depth", depthTexture);
 
-        GlDevice glDevice = (GlDevice) ((FrontendGpuDevice) RenderSystem.getDevice()).backend;
+        GpuDevice device = RenderSystem.getDevice();
+        GlDevice glDevice = (device instanceof FrontendGpuDevice frontend) ? (GlDevice) frontend.backend : (GlDevice) device;
         DirectStateAccess dsa = glDevice.directStateAccess();
         FrameBufferCache cache = glDevice.frameBufferCache();
         FrameBufferAttachment color = (FrameBufferAttachment) colorTexture.texture();

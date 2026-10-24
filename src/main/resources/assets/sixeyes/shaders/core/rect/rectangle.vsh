@@ -2,22 +2,22 @@
 
 #include<math_utils>
 
-in vec4 Position;
-in vec4 TopRightColor0;
-in vec4 TopLeftColor0;
-in vec4 BottomRightColor0;
-in vec4 BottomLeftColor0;
-in vec2 LocalCoord0;
-in vec2 UV0;
-in vec2 Size0;
-in vec4 Radius0;
-in float Mix0;
-in float Alpha0;
-in float Mode0;
-in float BorderWidth0;
-in vec4 BorderColor0;
-in float Type0;
-in vec4 Scissor0;
+layout(location = 0) in vec4 Position;
+layout(location = 1) in vec4 TopRightColor0;
+layout(location = 2) in vec4 TopLeftColor0;
+layout(location = 3) in vec4 BottomRightColor0;
+layout(location = 4) in vec4 BottomLeftColor0;
+layout(location = 5) in vec2 LocalCoord0;
+layout(location = 6) in vec2 UV0;
+layout(location = 7) in vec2 Size0;
+layout(location = 8) in vec4 Radius0;
+layout(location = 9) in float Mix0;
+layout(location = 10) in float Alpha0;
+layout(location = 11) in float Mode0;
+layout(location = 12) in float BorderWidth0;
+layout(location = 13) in vec4 BorderColor0;
+layout(location = 14) in float Type0;
+layout(location = 15) in vec4 Scissor0;
 
 #include<matrices>
 

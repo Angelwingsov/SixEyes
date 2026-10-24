@@ -15,7 +15,7 @@ in vec4 Scissor;
 uniform float uRange;
 uniform sampler2D uTexture;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 float median(vec3 color) {
     return max(min(color.r, color.g), min(max(color.r, color.g), color.b));
