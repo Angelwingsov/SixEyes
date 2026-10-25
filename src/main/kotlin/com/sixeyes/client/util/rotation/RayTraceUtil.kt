@@ -2,8 +2,7 @@ package com.sixeyes.client.util.rotation
 
 import com.sixeyes.client.extensions.box
 import com.sixeyes.client.extensions.inGame
-import com.sixeyes.client.extensions.level
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
@@ -17,8 +16,10 @@ object RayTraceUtil {
         throughWalls: Boolean = true
     ): Boolean {
         if (!inGame) return false
+        val localPlayer = mc.player ?: return false
+        val currentLevel = mc.level ?: return false
 
-        val eyePos = player.eyePosition
+        val eyePos = localPlayer.eyePosition
         val targetBox = target.box
 
         if (targetBox.contains(eyePos)) {
@@ -41,13 +42,13 @@ object RayTraceUtil {
         }
 
         if (!throughWalls) {
-            val blockHit = level.clip(
+            val blockHit = currentLevel.clip(
                 ClipContext(
                     eyePos,
                     hitVec,
                     ClipContext.Block.COLLIDER,
                     ClipContext.Fluid.NONE,
-                    player
+                    localPlayer
                 )
             )
             if (blockHit.type != HitResult.Type.MISS) {

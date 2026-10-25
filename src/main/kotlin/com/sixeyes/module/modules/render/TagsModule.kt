@@ -42,21 +42,36 @@ object TagsModule : Module(
 
     private val absorptionHp = Color4b(255, 215, 64, 255)
 
-    private data class ProjectedTag(
-        val target: Player,
-        val screenX: Float,
-        val screenY: Float,
-        val depth: Float
-    )
+    private class ProjectedTag {
+        var target: Player? = null
+        var screenX: Float = 0f
+        var screenY: Float = 0f
+        var depth: Float = 0f
 
-    private val projectedTags = ArrayList<ProjectedTag>()
+        fun set(target: Player, screenX: Float, screenY: Float, depth: Float) {
+            this.target = target
+            this.screenX = screenX
+            this.screenY = screenY
+            this.depth = depth
+        }
+    }
+
+    private val DEPTH_COMPARATOR = Comparator<ProjectedTag> { a, b -> b.depth.compareTo(a.depth) }
+    private val tagPool = ArrayList<ProjectedTag>()
+    private val activeTags = ArrayList<ProjectedTag>()
+
+    private fun obtainTag(): ProjectedTag {
+        return if (tagPool.isNotEmpty()) tagPool.removeAt(tagPool.lastIndex) else ProjectedTag()
+    }
 
     @Commando
     fun onOverlayRender(event: OverlayRenderEvent) {
         safeRun {
             val partialTicks = event.partialTicks
             val isFirstPerson = mc.options.cameraType.isFirstPerson
-            projectedTags.clear()
+
+            tagPool.addAll(activeTags)
+            activeTags.clear()
 
             for (target in level.players()) {
                 if (!target.isAlive || target.isRemoved) continue
@@ -71,12 +86,14 @@ object TagsModule : Module(
                     ?.y ?: (target.bbHeight.toDouble() + 0.25)
 
                 val projected = ProjectionUtil.worldToScreen(interpX, interpY + attachmentY + 0.2, interpZ) ?: continue
-                projectedTags.add(ProjectedTag(target, projected.x, projected.y, projected.z))
+                val tag = obtainTag()
+                tag.set(target, projected.x, projected.y, projected.z)
+                activeTags.add(tag)
             }
 
-            if (projectedTags.isEmpty()) return@safeRun
+            if (activeTags.isEmpty()) return@safeRun
 
-            projectedTags.sortByDescending { it.depth }
+            activeTags.sortWith(DEPTH_COMPARATOR)
 
             val matrix = MatrixControl.matrix4fStack
             val palette = M3Theme.current
@@ -98,8 +115,8 @@ object TagsModule : Module(
             val bgColor = palette.surface.with(a = 215)
             val badgeBg = palette.primaryContainer.with(a = 120)
 
-            for (tag in projectedTags) {
-                val target = tag.target
+            for (tag in activeTags) {
+                val target = tag.target ?: continue
                 val nameText = target.name.string
 
                 val hp = target.health.coerceAtLeast(0f)

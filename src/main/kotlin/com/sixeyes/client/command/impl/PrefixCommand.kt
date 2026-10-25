@@ -8,7 +8,7 @@ import com.sixeyes.client.util.other.ChatUtil
 object PrefixCommand : Command(
     name = "prefix",
     description = "Change the client command prefix",
-    syntax = "prefix <symbol>",
+    syntax = "prefix <char>",
     aliases = listOf("p")
 ) {
     override fun execute(args: Array<String>) {

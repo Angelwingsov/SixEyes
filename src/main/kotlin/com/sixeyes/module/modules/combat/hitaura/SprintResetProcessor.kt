@@ -2,7 +2,6 @@ package com.sixeyes.module.modules.combat.hitaura
 
 import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.mc
-import com.sixeyes.client.extensions.player
 import com.sixeyes.client.util.movement.MoveUtil
 import com.sixeyes.client.util.rotation.MoveFixProcessor
 import com.sixeyes.module.modules.combat.HitAuraModule.SprintResetMode
@@ -19,6 +18,7 @@ class SprintResetProcessor {
 
     fun onTick() {
         if (!inGame) return
+        val localPlayer = mc.player ?: return
         if (legitResetTicks > 0) {
             legitResetTicks--
             if (legitResetTicks == 0) {
@@ -27,11 +27,11 @@ class SprintResetProcessor {
                     || AutoSprintModule.isEnabled()
                     || MoveFixProcessor.hasForwardInput
                 if (shouldSprint) {
-                    player.isSprinting = true
+                    localPlayer.isSprinting = true
                     mc.options.keySprint.isDown = true
                 }
             } else {
-                player.isSprinting = false
+                localPlayer.isSprinting = false
             }
         }
     }
@@ -39,14 +39,14 @@ class SprintResetProcessor {
     fun preAttack(mode: SprintResetMode, forceStopSprint: Boolean = false) {
         if (!inGame) return
         if (forceStopSprint) {
-            player.isSprinting = false
+            mc.player?.isSprinting = false
         }
     }
 
     fun postAttack(mode: SprintResetMode) {
         if (!inGame || mode == SprintResetMode.OFF) return
 
-        player.isSprinting = false
+        mc.player?.isSprinting = false
         legitResetTicks = 1
     }
 }

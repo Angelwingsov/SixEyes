@@ -42,6 +42,7 @@ object ConfigManager {
                 modulesObj.add(module.name, modObj)
             }
 
+            root.addProperty("prefix", CommandManager.prefix)
             root.add("modules", modulesObj)
             file.writeText(gson.toJson(root))
             true

@@ -1,7 +1,7 @@
 package com.sixeyes.module.modules.combat.hitaura
 
 import com.sixeyes.client.extensions.box
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.util.rotation.*
 import com.sixeyes.module.modules.combat.HitAuraModule.AimPointMode
 import com.sixeyes.module.modules.combat.HitAuraModule.RotationMode
@@ -93,7 +93,8 @@ class AuraRotationProcessor {
 
     fun isAimedAtTarget(target: LivingEntity, maxAngleError: Float = 28.0f): Boolean {
         val currentRot = RotationManager.getServerRotation()
-        val nearestVec = RotationUtil.getNearestPoint(player.eyePosition, target.box)
+        val eyePos = mc.player?.eyePosition ?: return false
+        val nearestVec = RotationUtil.getNearestPoint(eyePos, target.box)
         val neededRot = RotationUtil.getRotationToVec(nearestVec)
         val yawError = abs(Mth.wrapDegrees(neededRot.yaw - currentRot.yaw))
         val pitchError = abs(neededRot.pitch - currentRot.pitch)
@@ -102,7 +103,7 @@ class AuraRotationProcessor {
 
     private fun calculateAimPoint(target: LivingEntity, aimPointMode: AimPointMode): Vec3 {
         val box = target.box
-        val eyePos = player.eyePosition
+        val eyePos = mc.player?.eyePosition ?: Vec3.ZERO
         return when (aimPointMode) {
             AimPointMode.NEAREST -> RotationUtil.getNearestPoint(eyePos, box, 0.10)
             AimPointMode.MULTIPOINT -> RotationUtil.getMultipoint(eyePos, box, 0.78)

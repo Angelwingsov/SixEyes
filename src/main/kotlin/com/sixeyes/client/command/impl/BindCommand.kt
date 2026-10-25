@@ -15,8 +15,6 @@ object BindCommand : Command(
     aliases = listOf("b", "keybind")
 ) {
     override fun execute(args: Array<String>) {
-        val p = CommandManager.prefix
-
         if (args.isEmpty()) {
             sendUsage()
             return
@@ -25,7 +23,7 @@ object BindCommand : Command(
         when (args[0].lowercase()) {
             "add", "set" -> {
                 if (args.size < 3) {
-                    ChatUtil.error("Usage: ${p}bind add <module> <key>")
+                    ChatUtil.error("Usage: ${CommandManager.prefix}bind add <module> <key>")
                     return
                 }
                 val moduleName = args[1]
@@ -50,7 +48,7 @@ object BindCommand : Command(
 
             "remove", "del", "delete" -> {
                 if (args.size < 2) {
-                    ChatUtil.error("Usage: ${p}bind remove <module>")
+                    ChatUtil.error("Usage: ${CommandManager.prefix}bind remove <module>")
                     return
                 }
                 val moduleName = args[1]
@@ -86,13 +84,12 @@ object BindCommand : Command(
 
                 ChatUtil.send("Active Keybinds (${bound.size}):")
                 for (mod in bound) {
-                    ChatUtil.raw("  §7- §f${mod.name} §7[§d${KeybindSetting.formatKey(mod.key)}§7]")
+                    ChatUtil.send("§7- §f${mod.name} §7[§d${KeybindSetting.formatKey(mod.key)}§7]")
                 }
             }
 
             else -> {
-                ChatUtil.error("Unknown subcommand '${args[0]}'.")
-                sendUsage()
+                ChatUtil.error("Unknown subcommand '${args[0]}'. Usage: ${CommandManager.prefix}$syntax")
             }
         }
     }

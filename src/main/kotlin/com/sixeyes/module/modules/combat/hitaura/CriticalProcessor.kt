@@ -2,7 +2,6 @@ package com.sixeyes.module.modules.combat.hitaura
 
 import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.mc
-import com.sixeyes.client.extensions.player
 import com.sixeyes.client.util.movement.MoveUtil
 import net.minecraft.world.effect.MobEffects
 
@@ -11,12 +10,14 @@ class CriticalProcessor {
         if (!inGame) return false
         if (!onlyCrits) return true
 
+        val localPlayer = mc.player ?: return false
+
         if (!canPerformCrit()) {
             return true
         }
 
         if (smartCrits) {
-            val isJumpingOrAirborne = !player.onGround() || mc.options.keyJump.isDown || MoveUtil.isKeyPressed(mc.options.keyJump)
+            val isJumpingOrAirborne = !localPlayer.onGround() || mc.options.keyJump.isDown || MoveUtil.isKeyPressed(mc.options.keyJump)
             if (!isJumpingOrAirborne) {
                 return true
             }
@@ -27,22 +28,24 @@ class CriticalProcessor {
 
     fun isFallingForCrit(): Boolean {
         if (!inGame) return false
-        return !player.onGround() && player.fallDistance > 0.0 && player.deltaMovement.y < 0.0
+        val localPlayer = mc.player ?: return false
+        return !localPlayer.onGround() && localPlayer.fallDistance > 0.0 && localPlayer.deltaMovement.y < 0.0
     }
 
     private fun canPerformCrit(): Boolean {
-        if (player.isInWater || player.isInLava || player.onClimbable() || player.isPassenger) {
+        val localPlayer = mc.player ?: return false
+        if (localPlayer.isInWater || localPlayer.isInLava || localPlayer.onClimbable() || localPlayer.isPassenger) {
             return false
         }
-        if (player.abilities.flying || player.isFallFlying) {
+        if (localPlayer.abilities.flying || localPlayer.isFallFlying) {
             return false
         }
         if (MoveUtil.isInWeb() || MoveUtil.isAboveWater()) {
             return false
         }
-        if (player.hasEffect(MobEffects.BLINDNESS)
-            || player.hasEffect(MobEffects.LEVITATION)
-            || player.hasEffect(MobEffects.SLOW_FALLING)
+        if (localPlayer.hasEffect(MobEffects.BLINDNESS)
+            || localPlayer.hasEffect(MobEffects.LEVITATION)
+            || localPlayer.hasEffect(MobEffects.SLOW_FALLING)
         ) {
             return false
         }

@@ -1,7 +1,7 @@
 package com.sixeyes.module.modules.combat.hitaura
 
 import com.sixeyes.client.extensions.inGame
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.util.other.TimerUtil
 import com.sixeyes.module.modules.combat.HitAuraModule.ClickMode
 import java.util.concurrent.ThreadLocalRandom
@@ -23,10 +23,11 @@ class ClickerProcessor {
         randomSpread: Double
     ): Boolean {
         if (!inGame) return false
+        val localPlayer = mc.player ?: return false
 
         return when (clickMode) {
             ClickMode.MODE_1_9 -> {
-                val cooldownReady = player.getAttackStrengthScale(0.5f) >= 0.91f
+                val cooldownReady = localPlayer.getAttackStrengthScale(0.5f) >= 0.91f
                 cooldownReady && clickTimer.isComplete(45L)
             }
             ClickMode.MODE_1_8 -> {

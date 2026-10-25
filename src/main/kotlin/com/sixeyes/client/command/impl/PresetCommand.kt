@@ -12,12 +12,12 @@ object PresetCommand : Command(
     aliases = listOf("cfg", "config")
 ) {
     override fun execute(args: Array<String>) {
-        val p = CommandManager.prefix
-
         if (args.isEmpty()) {
             sendUsage()
             return
         }
+
+        val p = CommandManager.prefix
 
         when (args[0].lowercase()) {
             "load" -> {
@@ -71,7 +71,7 @@ object PresetCommand : Command(
                     return
                 }
                 ChatUtil.send("Available presets (${configs.size}):")
-                ChatUtil.raw("  §7" + configs.joinToString("§7, §f", prefix = "§f"))
+                ChatUtil.send("§7" + configs.joinToString("§7, §f", prefix = "§f"))
             }
 
             "dir", "folder", "open" -> {
@@ -83,8 +83,7 @@ object PresetCommand : Command(
             }
 
             else -> {
-                ChatUtil.error("Unknown subcommand '${args[0]}'.")
-                sendUsage()
+                ChatUtil.error("Unknown subcommand '${args[0]}'. Usage: $p$syntax")
             }
         }
     }

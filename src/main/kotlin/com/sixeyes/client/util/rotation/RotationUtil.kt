@@ -1,7 +1,7 @@
 package com.sixeyes.client.util.rotation
 
 import com.sixeyes.client.extensions.box
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.AABB
@@ -11,7 +11,7 @@ import kotlin.math.hypot
 import kotlin.math.sqrt
 
 object RotationUtil {
-    fun getRotationToVec(targetVec: Vec3, eyePos: Vec3 = player.eyePosition): Rotation {
+    fun getRotationToVec(targetVec: Vec3, eyePos: Vec3 = mc.player?.eyePosition ?: Vec3.ZERO): Rotation {
         val diffX = targetVec.x - eyePos.x
         val diffY = targetVec.y - eyePos.y
         val diffZ = targetVec.z - eyePos.z
@@ -51,12 +51,12 @@ object RotationUtil {
         return Vec3(clampedX, clampedY, clampedZ)
     }
 
-    fun getDistanceToBox(entity: Entity, eyePos: Vec3 = player.eyePosition): Double {
+    fun getDistanceToBox(entity: Entity, eyePos: Vec3 = mc.player?.eyePosition ?: Vec3.ZERO): Double {
         val nearest = getNearestPoint(eyePos, entity.box)
         return eyePos.distanceTo(nearest)
     }
 
-    fun getFovToEntity(entity: Entity, baseRotation: Rotation = Rotation(player.yRot, player.xRot)): Float {
+    fun getFovToEntity(entity: Entity, baseRotation: Rotation = mc.player?.let { Rotation(it.yRot, it.xRot) } ?: Rotation(0f, 0f)): Float {
         val center = entity.box.center
         val rotToTarget = getRotationToVec(center)
         val dYaw = Mth.wrapDegrees(rotToTarget.yaw - baseRotation.yaw)
@@ -64,7 +64,7 @@ object RotationUtil {
         return hypot(dYaw, dPitch)
     }
 
-    fun isInFov(entity: Entity, fov: Float, baseRotation: Rotation = Rotation(player.yRot, player.xRot)): Boolean {
+    fun isInFov(entity: Entity, fov: Float, baseRotation: Rotation = mc.player?.let { Rotation(it.yRot, it.xRot) } ?: Rotation(0f, 0f)): Boolean {
         if (fov >= 180.0f) return true
         val center = entity.box.center
         val rotToTarget = getRotationToVec(center)

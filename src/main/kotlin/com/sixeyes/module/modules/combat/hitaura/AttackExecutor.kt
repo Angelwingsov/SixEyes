@@ -1,8 +1,7 @@
 package com.sixeyes.module.modules.combat.hitaura
 
-import com.sixeyes.client.extensions.gameMode
 import com.sixeyes.client.extensions.inGame
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.extensions.sendPacket
 import com.sixeyes.client.util.rotation.RayTraceUtil
 import com.sixeyes.client.util.rotation.RotationManager
@@ -54,6 +53,9 @@ class AttackExecutor(
             return false
         }
 
+        val localPlayer = mc.player ?: return false
+        val currentGameMode = mc.gameMode ?: return false
+
         if (rayTrace) {
             val currentRot = RotationManager.getServerRotation()
             val hitsCurrentHitbox = RayTraceUtil.isLookingAtEntity(
@@ -83,16 +85,16 @@ class AttackExecutor(
         val isCritAttack = onlyCrits && criticalProcessor.isFallingForCrit()
         sprintResetProcessor.preAttack(sprintResetMode, forceStopSprint = isCritAttack)
 
-        val itemStack = player.getItemInHand(InteractionHand.MAIN_HAND)
+        val itemStack = localPlayer.getItemInHand(InteractionHand.MAIN_HAND)
         val swingAnimation = itemStack.attackAnimation
 
         if (clickMode == ClickMode.MODE_1_8) {
-            player.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
+            localPlayer.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
             sendPacket(ServerboundPunchPacket.INSTANCE)
-            gameMode.attack(player, target)
+            currentGameMode.attack(localPlayer, target)
         } else {
-            gameMode.attack(player, target)
-            player.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
+            currentGameMode.attack(localPlayer, target)
+            localPlayer.swing(InteractionHand.MAIN_HAND, swingAnimation, false)
             sendPacket(ServerboundPunchPacket.INSTANCE)
         }
 

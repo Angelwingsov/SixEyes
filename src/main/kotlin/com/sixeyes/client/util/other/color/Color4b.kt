@@ -5,27 +5,22 @@ import net.minecraft.util.ARGB
 import org.joml.Vector4f
 import java.awt.Color
 
-data class Color4b(val argb: Int) {
+@JvmInline
+value class Color4b(val argb: Int) {
 
-    @JvmOverloads
     constructor(r: Int, g: Int, b: Int, a: Int = 255) : this(ARGB.color(a, r, g, b))
 
     constructor(color: Color) : this(color.rgb)
 
-    @get:JvmName("a")
     val a: Int get() = ARGB.alpha(argb)
 
-    @get:JvmName("r")
     val r: Int get() = ARGB.red(argb)
 
-    @get:JvmName("g")
     val g: Int get() = ARGB.green(argb)
 
-    @get:JvmName("b")
     val b: Int get() = ARGB.blue(argb)
 
     companion object {
-
         val WHITE = Color4b(255, 255, 255, 255)
         val BLACK = Color4b(0, 0, 0, 255)
         val RED = Color4b(255, 0, 0, 255)
@@ -101,7 +96,7 @@ data class Color4b(val argb: Int) {
 
     fun darker() = Color4b(darkerChannel(r), darkerChannel(g), darkerChannel(b), a)
 
-    private fun darkerChannel(value: Int) = (value * 0.7).toInt().coerceAtLeast(0)
+    private fun darkerChannel(value: Int): Int = (value * 0.7).toInt().coerceAtLeast(0)
 
     fun interpolateTo(other: Color4b, percentage: Double): Color4b =
         interpolateTo(other, percentage, percentage, percentage, percentage)
@@ -122,7 +117,7 @@ data class Color4b(val argb: Int) {
     fun toAwtColor(): Color = Color(r, g, b, a)
 
     fun toTextColor(): TextColor = TextColor.fromRgb(argb and 0x00FFFFFF)
-    
+
     @JvmOverloads
     fun toHexString(format: HexFormat = HexFormat.Default): String =
         argb.toHexString(format)

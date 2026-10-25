@@ -1,8 +1,7 @@
 package com.sixeyes.module.modules.combat.hitaura
 
 import com.sixeyes.client.extensions.inGame
-import com.sixeyes.client.extensions.level
-import com.sixeyes.client.extensions.player
+import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.util.rotation.RotationUtil
 import com.sixeyes.module.modules.combat.HitAuraModule.TargetMode
 import com.sixeyes.module.modules.combat.HitAuraModule.TargetPriority
@@ -23,10 +22,12 @@ class TargetSelector {
 
     private var switchIndex: Int = 0
     private var lastSwitchTime: Long = 0L
+    private val candidateList = ArrayList<LivingEntity>()
 
     fun reset() {
         currentTarget = null
         switchIndex = 0
+        candidateList.clear()
     }
 
     fun updateTarget(
@@ -39,6 +40,7 @@ class TargetSelector {
     ): LivingEntity? {
         if (!inGame) {
             currentTarget = null
+            candidateList.clear()
             return null
         }
 
@@ -49,29 +51,36 @@ class TargetSelector {
             }
         }
 
-        val candidates = ArrayList<LivingEntity>()
-        for (entity in level.entitiesForRendering()) {
+        val currentLevel = mc.level ?: run {
+            currentTarget = null
+            candidateList.clear()
+            return null
+        }
+
+        candidateList.clear()
+        for (entity in currentLevel.entitiesForRendering()) {
             if (entity is LivingEntity && isValidTarget(entity, aimRange, fov, allowedTargets, throughWalls)) {
-                candidates.add(entity)
+                candidateList.add(entity)
             }
         }
 
-        if (candidates.isEmpty()) {
+        if (candidateList.isEmpty()) {
             currentTarget = null
             return null
         }
 
-        candidates.sortWith(getComparator(priority))
+        val comparator = getComparator(priority)
 
         currentTarget = when (targetMode) {
-            TargetMode.SINGLE -> candidates.first()
+            TargetMode.SINGLE -> candidateList.minWithOrNull(comparator)
             TargetMode.SWITCH -> {
+                candidateList.sortWith(comparator)
                 val now = System.currentTimeMillis()
                 if (now - lastSwitchTime >= 350L) {
-                    switchIndex = (switchIndex + 1) % candidates.size
+                    switchIndex = (switchIndex + 1) % candidateList.size
                     lastSwitchTime = now
                 }
-                candidates[switchIndex % candidates.size]
+                candidateList[switchIndex % candidateList.size]
             }
         }
 
@@ -85,13 +94,14 @@ class TargetSelector {
         allowedTargets: Set<String>,
         throughWalls: Boolean
     ): Boolean {
-        if (entity === player) return false
+        val localPlayer = mc.player ?: return false
+        if (entity === localPlayer) return false
         if (entity !is LivingEntity) return false
         if (!entity.isAlive || entity.isRemoved || entity.health <= 0.0f) return false
         if (entity is ArmorStand) return false
         if (entity.isSpectator) return false
 
-        if (!throughWalls && !player.hasLineOfSight(entity)) {
+        if (!throughWalls && !localPlayer.hasLineOfSight(entity)) {
             return false
         }
 
@@ -127,13 +137,31 @@ class TargetSelector {
         return target.armorValue == 0
     }
 
-    private fun getComparator(priority: TargetPriority): Comparator<LivingEntity> {
-        return when (priority) {
-            TargetPriority.DISTANCE -> compareBy { RotationUtil.getDistanceToBox(it) }
-            TargetPriority.HEALTH -> compareBy { (it.health + it.absorptionAmount).toDouble() }
-            TargetPriority.FOV -> compareBy { RotationUtil.getFovToEntity(it).toDouble() }
-            TargetPriority.HURT_TIME -> compareBy<LivingEntity> { it.hurtTime }.thenBy { RotationUtil.getDistanceToBox(it) }
-            TargetPriority.ARMOR -> compareBy<LivingEntity> { it.armorValue }.thenBy { RotationUtil.getDistanceToBox(it) }
+    companion object {
+        private val DISTANCE = Comparator<LivingEntity> { a, b ->
+            RotationUtil.getDistanceToBox(a).compareTo(RotationUtil.getDistanceToBox(b))
+        }
+        private val HEALTH = Comparator<LivingEntity> { a, b ->
+            (a.health + a.absorptionAmount).compareTo(b.health + b.absorptionAmount)
+        }
+        private val FOV = Comparator<LivingEntity> { a, b ->
+            RotationUtil.getFovToEntity(a).compareTo(RotationUtil.getFovToEntity(b))
+        }
+        private val HURTIME = Comparator<LivingEntity> { a, b ->
+            val res = a.hurtTime.compareTo(b.hurtTime)
+            if (res != 0) res else RotationUtil.getDistanceToBox(a).compareTo(RotationUtil.getDistanceToBox(b))
+        }
+        private val ARMOR = Comparator<LivingEntity> { a, b ->
+            val res = a.armorValue.compareTo(b.armorValue)
+            if (res != 0) res else RotationUtil.getDistanceToBox(a).compareTo(RotationUtil.getDistanceToBox(b))
+        }
+
+        fun getComparator(priority: TargetPriority): Comparator<LivingEntity> = when (priority) {
+            TargetPriority.DISTANCE -> DISTANCE
+            TargetPriority.HEALTH -> HEALTH
+            TargetPriority.FOV -> FOV
+            TargetPriority.HURT_TIME -> HURTIME
+            TargetPriority.ARMOR -> ARMOR
         }
     }
 }

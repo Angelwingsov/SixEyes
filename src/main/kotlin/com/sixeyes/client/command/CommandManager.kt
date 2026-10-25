@@ -1,14 +1,6 @@
 package com.sixeyes.client.command
 
-import com.sixeyes.client.command.impl.BindCommand
-import com.sixeyes.client.command.impl.HClipCommand
-import com.sixeyes.client.command.impl.HelpCommand
-import com.sixeyes.client.command.impl.ListCommand
-import com.sixeyes.client.command.impl.PrefixCommand
-import com.sixeyes.client.command.impl.PresetCommand
-import com.sixeyes.client.command.impl.SayCommand
-import com.sixeyes.client.command.impl.ToggleCommand
-import com.sixeyes.client.command.impl.VClipCommand
+import com.sixeyes.client.command.impl.*
 import com.sixeyes.client.interfaces.ILoadable
 import com.sixeyes.client.util.other.ChatUtil
 import com.sixeyes.event.EventManager

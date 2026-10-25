@@ -29,10 +29,25 @@ data class RectCorners(
         @JvmField
         val ZERO = RectCorners(0f, 0f, 0f, 0f)
 
+        private val COMMON_CORNERS = mapOf(
+            0f to ZERO,
+            2f to RectCorners(2f, 2f, 2f, 2f),
+            4f to RectCorners(4f, 4f, 4f, 4f),
+            6f to RectCorners(6f, 6f, 6f, 6f),
+            8f to RectCorners(8f, 8f, 8f, 8f),
+            10f to RectCorners(10f, 10f, 10f, 10f),
+            12f to RectCorners(12f, 12f, 12f, 12f),
+            14f to RectCorners(14f, 14f, 14f, 14f),
+            16f to RectCorners(16f, 16f, 16f, 16f),
+            20f to RectCorners(20f, 20f, 20f, 20f),
+            24f to RectCorners(24f, 24f, 24f, 24f),
+            28f to RectCorners(28f, 28f, 28f, 28f)
+        )
+
         @JvmStatic
         fun all(radius: Float): RectCorners {
             val normalized = radius.coerceAtLeast(0f)
-            return RectCorners(normalized, normalized, normalized, normalized)
+            return COMMON_CORNERS[normalized] ?: RectCorners(normalized, normalized, normalized, normalized)
         }
     }
 }

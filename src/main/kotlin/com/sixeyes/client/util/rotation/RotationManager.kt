@@ -2,7 +2,6 @@ package com.sixeyes.client.util.rotation
 
 import com.sixeyes.client.extensions.inGame
 import com.sixeyes.client.extensions.mc
-import com.sixeyes.client.extensions.player
 import com.sixeyes.client.listener.Listener
 import net.minecraft.client.player.ClientInput
 import net.minecraft.client.player.LocalPlayer
@@ -35,7 +34,7 @@ object RotationManager : Listener() {
     fun isActive(): Boolean = inGame && currentRotation != null
 
     fun getServerRotation(): Rotation {
-        return currentRotation ?: if (inGame) Rotation(player.yRot, player.xRot) else Rotation(0.0f, 0.0f)
+        return currentRotation ?: mc.player?.let { Rotation(it.yRot, it.xRot) } ?: Rotation(0.0f, 0.0f)
     }
 
     fun getPreviousServerRotation(): Rotation {
@@ -51,8 +50,9 @@ object RotationManager : Listener() {
         clientLook: Boolean = false
     ) {
         if (!inGame) return
+        val localPlayer = mc.player ?: return
 
-        val basePrev = currentRotation ?: Rotation(player.yRot, player.xRot)
+        val basePrev = currentRotation ?: Rotation(localPlayer.yRot, localPlayer.xRot)
         val normalized = rotation.normalizeTo(basePrev)
         val finalRot = if (gcd) GCDUtil.applyGCD(normalized, basePrev) else normalized.clamped()
 
@@ -65,8 +65,8 @@ object RotationManager : Listener() {
         this.updatedThisTick = true
 
         if (clientLook) {
-            player.yRot = finalRot.yaw
-            player.xRot = finalRot.pitch
+            localPlayer.yRot = finalRot.yaw
+            localPlayer.xRot = finalRot.pitch
         }
     }
 
@@ -83,12 +83,20 @@ object RotationManager : Listener() {
             resetImmediate()
             return
         }
-        previousRotation = currentRotation ?: Rotation(player.yRot, player.xRot)
+        val localPlayer = mc.player ?: run {
+            resetImmediate()
+            return
+        }
+        previousRotation = currentRotation ?: Rotation(localPlayer.yRot, localPlayer.xRot)
         updatedThisTick = false
     }
 
     fun onPostUpdate() {
         if (!inGame) {
+            resetImmediate()
+            return
+        }
+        val localPlayer = mc.player ?: run {
             resetImmediate()
             return
         }
@@ -101,7 +109,7 @@ object RotationManager : Listener() {
             return
         }
 
-        val cameraRot = Rotation(player.yRot, player.xRot).normalizeTo(current)
+        val cameraRot = Rotation(localPlayer.yRot, localPlayer.xRot).normalizeTo(current)
         val dYaw = Mth.wrapDegrees(cameraRot.yaw - current.yaw)
         val dPitch = cameraRot.pitch - current.pitch
         val dist = hypot(dYaw, dPitch)

@@ -25,7 +25,7 @@ object ListCommand : Command(
             val mods = ModuleManager.getByCategory(category)
             ChatUtil.send("${category.displayName} Modules (${mods.size}):")
             val formatted = mods.joinToString("§7, ") {
-                if (it.state) "§a${it.name}" else "§7${it.name}"
+                if (it.isEnabled()) "§a${it.name}" else "§7${it.name}"
             }
             ChatUtil.raw("  $formatted")
             return
@@ -39,10 +39,10 @@ object ListCommand : Command(
             val mods = ModuleManager.getByCategory(category)
             if (mods.isEmpty()) continue
             totalCount += mods.size
-            enabledCount += mods.count { it.state }
+            enabledCount += mods.count { it.isEnabled() }
 
             val formatted = mods.joinToString("§7, ") {
-                if (it.state) "§a${it.name}" else "§7${it.name}"
+                if (it.isEnabled()) "§a${it.name}" else "§7${it.name}"
             }
             ChatUtil.raw("  §d${category.displayName}§8: $formatted")
         }
