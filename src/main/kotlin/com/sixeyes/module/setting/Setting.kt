@@ -1,10 +1,11 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonElement
 import com.sixeyes.module.Module
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-abstract class Setting<T>(
+sealed class Setting<T>(
     val name: String,
     var value: T,
     val defaultValue: T,
@@ -35,6 +36,9 @@ abstract class Setting<T>(
     fun reset() {
         set(defaultValue)
     }
+
+    abstract fun serialize(): JsonElement
+    abstract fun deserialize(element: JsonElement)
 
     override operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 

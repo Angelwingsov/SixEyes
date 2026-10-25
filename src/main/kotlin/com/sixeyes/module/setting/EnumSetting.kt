@@ -1,5 +1,8 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+
 class EnumSetting<E : Enum<E>>(
     name: String,
     defaultValue: E,
@@ -35,5 +38,13 @@ class EnumSetting<E : Enum<E>>(
         if (entries.isEmpty()) return
         val idx = entries.indexOf(value)
         set(entries[(idx - 1 + entries.size) % entries.size])
+    }
+
+    override fun serialize(): JsonElement = JsonPrimitive(value.name)
+
+    override fun deserialize(element: JsonElement) {
+        if (element.isJsonPrimitive && element.asJsonPrimitive.isString) {
+            selectByName(element.asString)
+        }
     }
 }

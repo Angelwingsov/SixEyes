@@ -1,5 +1,9 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+
 class MultiModeSetting(
     name: String,
     defaultValue: Set<String>,
@@ -18,5 +22,23 @@ class MultiModeSetting(
             newSet.add(m)
         }
         set(newSet)
+    }
+
+    override fun serialize(): JsonElement {
+        val array = JsonArray()
+        value.forEach { array.add(JsonPrimitive(it)) }
+        return array
+    }
+
+    override fun deserialize(element: JsonElement) {
+        if (element.isJsonArray) {
+            val newSet = mutableSetOf<String>()
+            element.asJsonArray.forEach {
+                if (it.isJsonPrimitive && it.asJsonPrimitive.isString) {
+                    newSet.add(it.asString)
+                }
+            }
+            set(newSet)
+        }
     }
 }

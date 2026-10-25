@@ -1,5 +1,7 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
 import java.util.Locale
 
 class NumberSetting(
@@ -32,6 +34,14 @@ class NumberSetting(
             "${value.toInt()}$unit"
         } else {
             String.format(Locale.US, "%.${precision}f$unit", value)
+        }
+    }
+
+    override fun serialize(): JsonElement = JsonPrimitive(value)
+
+    override fun deserialize(element: JsonElement) {
+        if (element.isJsonPrimitive && element.asJsonPrimitive.isNumber) {
+            set(element.asDouble)
         }
     }
 }

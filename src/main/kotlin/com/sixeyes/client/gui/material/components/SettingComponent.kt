@@ -5,11 +5,11 @@ import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.setting.Setting
 import org.joml.Matrix4f
 
-abstract class SettingComponent(val setting: Setting<*>) {
-    var x: Float = 0f
-    var y: Float = 0f
-    var width: Float = 0f
-    var height: Float = 0f
+abstract class SettingComponent(val setting: Setting<*>) : GuiComponent {
+    override var x: Float = 0f
+    override var y: Float = 0f
+    override var width: Float = 0f
+    override var height: Float = 0f
 
     protected data class FittedText(val text: String, val size: Float)
 
@@ -23,10 +23,10 @@ abstract class SettingComponent(val setting: Setting<*>) {
         dt: Float
     ): Float
 
-    open fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean = false
-    open fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {}
-    open fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {}
-    open fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean = false
+    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean = false
+    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {}
+    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {}
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean = false
     open fun charTyped(codePoint: Char, modifiers: Int): Boolean = false
 
     protected fun isHovered(mouseX: Double, mouseY: Double, x: Float, y: Float, w: Float, h: Float): Boolean {

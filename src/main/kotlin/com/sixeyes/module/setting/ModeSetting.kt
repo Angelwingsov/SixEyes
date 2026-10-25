@@ -1,5 +1,8 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+
 class ModeSetting(
     name: String,
     defaultValue: String,
@@ -20,5 +23,16 @@ class ModeSetting(
         if (modes.isEmpty()) return
         val idx = modes.indexOf(value)
         set(modes[(idx - 1 + modes.size) % modes.size])
+    }
+
+    override fun serialize(): JsonElement = JsonPrimitive(value)
+
+    override fun deserialize(element: JsonElement) {
+        if (element.isJsonPrimitive && element.asJsonPrimitive.isString) {
+            val str = element.asString
+            if (modes.any { it.equals(str, ignoreCase = true) }) {
+                set(str)
+            }
+        }
     }
 }

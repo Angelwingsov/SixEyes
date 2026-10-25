@@ -15,6 +15,9 @@ open class Module(
     var key: Int = InputConstants.UNKNOWN.value
 ) : IToggable {
     private var enabled = false
+    var state: Boolean
+        get() = enabled
+        set(value) = setEnabled(value)
     var isExpanded = false
     val settings: MutableList<Setting<*>> = ArrayList()
 

@@ -1,5 +1,7 @@
 package com.sixeyes.module.setting
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.sixeyes.client.util.other.color.Color4b
 import java.awt.Color
 import java.util.Locale
@@ -61,6 +63,26 @@ class ColorSetting(
             String.format(Locale.US, "#%02X%02X%02X%02X", value.r, value.g, value.b, value.a)
         } else {
             String.format(Locale.US, "#%02X%02X%02X", value.r, value.g, value.b)
+        }
+    }
+
+    override fun serialize(): JsonElement {
+        val obj = JsonObject()
+        obj.addProperty("r", r)
+        obj.addProperty("g", g)
+        obj.addProperty("b", b)
+        obj.addProperty("a", a)
+        return obj
+    }
+
+    override fun deserialize(element: JsonElement) {
+        if (element.isJsonObject) {
+            val obj = element.asJsonObject
+            val nr = obj.get("r")?.asInt ?: defaultValue.r
+            val ng = obj.get("g")?.asInt ?: defaultValue.g
+            val nb = obj.get("b")?.asInt ?: defaultValue.b
+            val na = obj.get("a")?.asInt ?: defaultValue.a
+            set(Color4b(nr, ng, nb, na))
         }
     }
 }

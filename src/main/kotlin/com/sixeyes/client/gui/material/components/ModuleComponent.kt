@@ -8,14 +8,14 @@ import com.sixeyes.client.util.render.RenderUtils
 import com.sixeyes.client.util.render.engine.controls.ClientRenderPipeline
 import com.sixeyes.client.util.render.font.Fonts
 import com.sixeyes.module.Module
-import com.sixeyes.module.setting.*
+import com.sixeyes.module.setting.KeybindSetting
 import org.joml.Matrix4f
 
-class ModuleComponent(val module: Module) {
-    var x: Float = 0f
-    var y: Float = 0f
-    var width: Float = 0f
-    var height: Float = 0f
+class ModuleComponent(val module: Module) : GuiComponent {
+    override var x: Float = 0f
+    override var y: Float = 0f
+    override var width: Float = 0f
+    override var height: Float = 0f
     var isBinding: Boolean = false
     var isExpanded: Boolean
         get() = module.isExpanded
@@ -27,15 +27,7 @@ class ModuleComponent(val module: Module) {
 
     init {
         for (setting in module.settings) {
-            when (setting) {
-                is BooleanSetting -> settingComponents.add(BooleanComponent(setting))
-                is NumberSetting -> settingComponents.add(NumberComponent(setting))
-                is EnumSetting<*> -> settingComponents.add(ModeComponent(setting))
-                is ModeSetting -> settingComponents.add(ModeComponent(setting))
-                is MultiModeSetting -> settingComponents.add(ModeComponent(setting))
-                is ColorSetting -> settingComponents.add(ColorComponent(setting))
-                is KeybindSetting -> settingComponents.add(KeybindComponent(setting))
-            }
+            settingComponents.add(SettingComponentFactory.create(setting))
         }
     }
 
@@ -193,7 +185,7 @@ class ModuleComponent(val module: Module) {
         return height
     }
 
-    fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         val pillH = 22f
 
         if (isHovered(mouseX, mouseY, x, y, width, pillH)) {
@@ -230,7 +222,7 @@ class ModuleComponent(val module: Module) {
         return false
     }
 
-    fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
+    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
         if (isExpanded) {
             for (comp in settingComponents) {
                 if (comp.setting.isVisible()) {
@@ -240,7 +232,7 @@ class ModuleComponent(val module: Module) {
         }
     }
 
-    fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {
+    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {
         if (isExpanded) {
             for (comp in settingComponents) {
                 if (comp.setting.isVisible()) {
@@ -250,7 +242,7 @@ class ModuleComponent(val module: Module) {
         }
     }
 
-    fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (isBinding) {
             if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_DELETE || keyCode == InputConstants.KEY_BACKSPACE) {
                 module.key = InputConstants.UNKNOWN.value

@@ -3,6 +3,7 @@ package com.sixeyes.client.gui.material.components
 import com.sixeyes.client.extensions.Category
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.gui.material.AnimFloat
+import com.sixeyes.client.gui.material.ClickGuiScreen
 import com.sixeyes.client.gui.material.M3Theme
 import com.sixeyes.client.util.other.color.Color4b
 import com.sixeyes.client.util.render.RenderUtils
@@ -15,11 +16,11 @@ import kotlin.math.hypot
 
 class CategoryPanel(
     val category: Category,
-    var x: Float,
-    var y: Float,
-    val width: Float = 122f
-) {
-    var height: Float = 42f
+    override var x: Float,
+    override var y: Float,
+    override var width: Float = 122f
+) : GuiComponent {
+    override var height: Float = 42f
     var isExpanded = true
     private val expandAnim = AnimFloat(if (isExpanded) 1f else 0f, if (isExpanded) 1f else 0f, 16f)
     private val scrollYAnim = AnimFloat(y, y, 18f)
@@ -126,12 +127,12 @@ class CategoryPanel(
         return height
     }
 
-    fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         val headerH = 37f
 
         if (isHovered(mouseX, mouseY, x, y, width, if (isExpanded) headerH else 42f)) {
             if (button == 0) {
-                com.sixeyes.client.gui.material.ClickGuiScreen.clearAllListening()
+                ClickGuiScreen.clearAllListening()
                 isDragging = true
                 hasMovedWhileDragging = false
                 dragStartMouseX = mouseX
@@ -140,7 +141,7 @@ class CategoryPanel(
                 dragOffsetY = (mouseY - y).toFloat()
                 return true
             } else if (button == 1) {
-                com.sixeyes.client.gui.material.ClickGuiScreen.clearAllListening()
+                ClickGuiScreen.clearAllListening()
                 isExpanded = !isExpanded
                 return true
             }
@@ -157,7 +158,7 @@ class CategoryPanel(
         return false
     }
 
-    fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
+    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
         if (isDragging && button == 0) {
             if (!hasMovedWhileDragging) {
                 isExpanded = !isExpanded
@@ -172,7 +173,7 @@ class CategoryPanel(
         }
     }
 
-    fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {
+    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double) {
         if (isDragging) {
             if (!hasMovedWhileDragging && hypot(mouseX - dragStartMouseX, mouseY - dragStartMouseY) > 2.5) {
                 hasMovedWhileDragging = true
@@ -203,7 +204,7 @@ class CategoryPanel(
         return candidateY.coerceIn(minY, maxY)
     }
 
-    fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (isExpanded) {
             for (modComp in moduleComponents) {
                 if (modComp.keyPressed(keyCode, scanCode, modifiers)) {
