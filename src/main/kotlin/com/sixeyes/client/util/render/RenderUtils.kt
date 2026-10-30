@@ -16,18 +16,6 @@ import org.joml.Matrix4f
 object RenderUtils {
     var currentGraphics: GuiGraphicsExtractor? = null
 
-    private fun renderVulkan(
-        gfx: GuiGraphicsExtractor,
-        matrix: Matrix4f,
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        style: RectStyle
-    ) {
-        VulkanShapes.drawRect(gfx, x, y, width, height, style)
-    }
-
     fun rect(
         matrix: Matrix4f,
         x: Float,
@@ -37,13 +25,28 @@ object RenderUtils {
         color: Color4b,
         pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
     ) {
-        rect(
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawRect(gfx, x, y, width, height, color)
+            return
+        }
+
+        val r = color.r / 255f
+        val g = color.g / 255f
+        val b = color.b / 255f
+        val a = color.a / 255f
+
+        RectRenderer.emitDirect(
             matrix = matrix,
             x = x,
             y = y,
             width = width,
             height = height,
-            style = RectStyle.solid(color),
+            trR = r, trG = g, trB = b, trA = a,
+            tlR = r, tlG = g, tlB = b, tlA = a,
+            brR = r, brG = g, brB = b, brA = a,
+            blR = r, blG = g, blB = b, blA = a,
+            radiusTl = 0f, radiusTr = 0f, radiusBr = 0f, radiusBl = 0f,
             pipeline = pipeline
         )
     }
@@ -58,13 +61,126 @@ object RenderUtils {
         radius: Float,
         pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
     ) {
-        rect(
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawRoundedRect(gfx, x, y, width, height, color, radius)
+            return
+        }
+
+        val r = color.r / 255f
+        val g = color.g / 255f
+        val b = color.b / 255f
+        val a = color.a / 255f
+
+        RectRenderer.emitDirect(
             matrix = matrix,
             x = x,
             y = y,
             width = width,
             height = height,
-            style = RectStyle.rounded(color, radius),
+            trR = r, trG = g, trB = b, trA = a,
+            tlR = r, tlG = g, tlB = b, tlA = a,
+            brR = r, brG = g, brB = b, brA = a,
+            blR = r, blG = g, blB = b, blA = a,
+            radiusTl = radius, radiusTr = radius, radiusBr = radius, radiusBl = radius,
+            pipeline = pipeline
+        )
+    }
+
+    fun roundedRectWithBorder(
+        matrix: Matrix4f,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Color4b,
+        radius: Float,
+        borderWidth: Float,
+        borderColor: Color4b,
+        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
+    ) {
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawRoundedRectWithBorder(gfx, x, y, width, height, color, radius, borderWidth, borderColor)
+            return
+        }
+
+        val r = color.r / 255f
+        val g = color.g / 255f
+        val b = color.b / 255f
+        val a = color.a / 255f
+
+        val bcR = borderColor.r / 255f
+        val bcG = borderColor.g / 255f
+        val bcB = borderColor.b / 255f
+        val bcA = borderColor.a / 255f
+
+        RectRenderer.emitDirect(
+            matrix = matrix,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            trR = r, trG = g, trB = b, trA = a,
+            tlR = r, tlG = g, tlB = b, tlA = a,
+            brR = r, brG = g, brB = b, brA = a,
+            blR = r, blG = g, blB = b, blA = a,
+            radiusTl = radius, radiusTr = radius, radiusBr = radius, radiusBl = radius,
+            borderWidth = borderWidth,
+            bcR = bcR, bcG = bcG, bcB = bcB, bcA = bcA,
+            pipeline = pipeline
+        )
+    }
+
+    fun customRoundedRect(
+        matrix: Matrix4f,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Color4b,
+        topLeft: Float,
+        topRight: Float,
+        bottomRight: Float,
+        bottomLeft: Float,
+        borderWidth: Float = 0f,
+        borderColor: Color4b = Color4b.TRANSPARENT,
+        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
+    ) {
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawCustom(
+                gfx, x, y, width, height,
+                topLeft, topRight, bottomRight, bottomLeft,
+                color.argb, color.argb, color.argb, color.argb,
+                borderWidth, borderColor.argb
+            )
+            return
+        }
+
+        val r = color.r / 255f
+        val g = color.g / 255f
+        val b = color.b / 255f
+        val a = color.a / 255f
+
+        val bcR = borderColor.r / 255f
+        val bcG = borderColor.g / 255f
+        val bcB = borderColor.b / 255f
+        val bcA = borderColor.a / 255f
+
+        RectRenderer.emitDirect(
+            matrix = matrix,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            trR = r, trG = g, trB = b, trA = a,
+            tlR = r, tlG = g, tlB = b, tlA = a,
+            brR = r, brG = g, brB = b, brA = a,
+            blR = r, blG = g, blB = b, blA = a,
+            radiusTl = topLeft, radiusTr = topRight, radiusBr = bottomRight, radiusBl = bottomLeft,
+            borderWidth = borderWidth,
+            bcR = bcR, bcG = bcG, bcB = bcB, bcA = bcA,
             pipeline = pipeline
         )
     }
@@ -81,13 +197,23 @@ object RenderUtils {
         bottomLeft: Color4b,
         pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
     ) {
-        rect(
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawGradientRect(gfx, x, y, width, height, topLeft, topRight, bottomRight, bottomLeft)
+            return
+        }
+
+        RectRenderer.emitDirect(
             matrix = matrix,
             x = x,
             y = y,
             width = width,
             height = height,
-            style = RectStyle.gradient(topLeft, topRight, bottomRight, bottomLeft),
+            trR = topRight.r / 255f, trG = topRight.g / 255f, trB = topRight.b / 255f, trA = topRight.a / 255f,
+            tlR = topLeft.r / 255f, tlG = topLeft.g / 255f, tlB = topLeft.b / 255f, tlA = topLeft.a / 255f,
+            brR = bottomRight.r / 255f, brG = bottomRight.g / 255f, brB = bottomRight.b / 255f, brA = bottomRight.a / 255f,
+            blR = bottomLeft.r / 255f, blG = bottomLeft.g / 255f, blB = bottomLeft.b / 255f, blA = bottomLeft.a / 255f,
+            radiusTl = 0f, radiusTr = 0f, radiusBr = 0f, radiusBl = 0f,
             pipeline = pipeline
         )
     }
@@ -105,19 +231,32 @@ object RenderUtils {
         uv: RectUv = RectUv.DEFAULT,
         pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
     ) {
-        rect(
+        val gfx = currentGraphics
+        if (gfx != null) {
+            return
+        }
+
+        val r = tint.r / 255f
+        val g = tint.g / 255f
+        val b = tint.b / 255f
+        val a = tint.a / 255f
+
+        RectRenderer.emitDirect(
             matrix = matrix,
             x = x,
             y = y,
             width = width,
             height = height,
-            style = RectStyle.textured(
-                textureId = textureId,
-                tint = tint,
-                mix = mix,
-                alpha = alpha,
-                uv = uv
-            ),
+            trR = r, trG = g, trB = b, trA = a,
+            tlR = r, tlG = g, tlB = b, tlA = a,
+            brR = r, brG = g, brB = b, brA = a,
+            blR = r, blG = g, blB = b, blA = a,
+            radiusTl = 0f, radiusTr = 0f, radiusBr = 0f, radiusBl = 0f,
+            mix = mix,
+            alpha = alpha,
+            typeId = 1f,
+            textureId = textureId,
+            u0 = uv.u0, v0 = uv.v0, u1 = uv.u1, v1 = uv.v1,
             pipeline = pipeline
         )
     }
@@ -161,7 +300,7 @@ object RenderUtils {
     ) {
         val gfx = currentGraphics
         if (gfx != null) {
-            renderVulkan(gfx, matrix, x, y, width, height, style)
+            VulkanShapes.drawRect(gfx, x, y, width, height, style)
             return
         }
 
@@ -193,76 +332,36 @@ object RenderUtils {
         type: RectType = RectType.BASIC,
         pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
     ) {
-        rect(
-            matrix = matrix,
-            x = x,
-            y = y,
-            width = width,
-            height = height,
-            style = RectStyle(
-                colors = colors,
-                corners = corners,
-                border = border,
-                mode = mode,
-                textureId = textureId,
-                mix = mix,
-                alpha = alpha,
-                uv = uv,
-                type = type
-            ),
-            pipeline = pipeline
-        )
-    }
+        val gfx = currentGraphics
+        if (gfx != null) {
+            VulkanShapes.drawCustom(
+                gfx, x, y, width, height,
+                corners.topLeft, corners.topRight, corners.bottomRight, corners.bottomLeft,
+                colors.topLeft.argb, colors.topRight.argb, colors.bottomRight.argb, colors.bottomLeft.argb,
+                border.width, border.color.argb
+            )
+            return
+        }
 
-    fun roundedRectWithBorder(
-        matrix: Matrix4f,
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        color: Color4b,
-        radius: Float,
-        borderWidth: Float,
-        borderColor: Color4b,
-        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
-    ) {
-        rect(
+        RectRenderer.emitDirect(
             matrix = matrix,
             x = x,
             y = y,
             width = width,
             height = height,
-            colors = RectColors.solid(color),
-            corners = RectCorners.all(radius),
-            border = if (borderWidth > 0f) RectBorder(borderWidth, borderColor) else RectBorder.NONE,
-            pipeline = pipeline
-        )
-    }
-
-    fun customRoundedRect(
-        matrix: Matrix4f,
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        color: Color4b,
-        topLeft: Float,
-        topRight: Float,
-        bottomRight: Float,
-        bottomLeft: Float,
-        borderWidth: Float = 0f,
-        borderColor: Color4b = Color4b.TRANSPARENT,
-        pipeline: ClientRenderPipeline = ClientRenderPipeline.GUI_RECT
-    ) {
-        rect(
-            matrix = matrix,
-            x = x,
-            y = y,
-            width = width,
-            height = height,
-            colors = RectColors.solid(color),
-            corners = RectCorners(topLeft, topRight, bottomRight, bottomLeft),
-            border = if (borderWidth > 0f) RectBorder(borderWidth, borderColor) else RectBorder.NONE,
+            trR = colors.topRight.r / 255f, trG = colors.topRight.g / 255f, trB = colors.topRight.b / 255f, trA = colors.topRight.a / 255f,
+            tlR = colors.topLeft.r / 255f, tlG = colors.topLeft.g / 255f, tlB = colors.topLeft.b / 255f, tlA = colors.topLeft.a / 255f,
+            brR = colors.bottomRight.r / 255f, brG = colors.bottomRight.g / 255f, brB = colors.bottomRight.b / 255f, brA = colors.bottomRight.a / 255f,
+            blR = colors.bottomLeft.r / 255f, blG = colors.bottomLeft.g / 255f, blB = colors.bottomLeft.b / 255f, blA = colors.bottomLeft.a / 255f,
+            radiusTl = corners.topLeft, radiusTr = corners.topRight, radiusBr = corners.bottomRight, radiusBl = corners.bottomLeft,
+            mix = mix,
+            alpha = alpha,
+            mode = mode,
+            borderWidth = border.width,
+            bcR = border.color.r / 255f, bcG = border.color.g / 255f, bcB = border.color.b / 255f, bcA = border.color.a / 255f,
+            typeId = type.id,
+            textureId = textureId,
+            u0 = uv.u0, v0 = uv.v0, u1 = uv.u1, v1 = uv.v1,
             pipeline = pipeline
         )
     }

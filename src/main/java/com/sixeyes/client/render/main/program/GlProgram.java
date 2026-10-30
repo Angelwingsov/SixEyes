@@ -8,6 +8,7 @@ import com.sixeyes.client.render.main.program.compile.CompileResult;
 import com.sixeyes.client.render.main.program.compile.CompileStatus;
 import com.sixeyes.client.render.main.program.uniform.GlUniform;
 import com.sixeyes.client.render.main.program.uniform.UniformType;
+import com.sixeyes.client.render.main.program.uniform.uniforms.Matrix4fGlUniform;
 import com.sixeyes.client.render.main.program.uniform.uniforms.buffer.BufferUniform;
 import com.sixeyes.client.render.main.program.uniform.uniforms.sampler.SamplerUniform;
 import lombok.Setter;
@@ -16,7 +17,6 @@ import org.lwjgl.opengl.GL20;
 
 import java.io.Closeable;
 import java.util.*;
-import java.util.function.Consumer;
 
 public class GlProgram implements Bindable, Compilable, Closeable {
     public static GlProgram ACTIVE_PROGRAM = null;
@@ -29,6 +29,9 @@ public class GlProgram implements Bindable, Compilable, Closeable {
     public int samplersAmount = 0;
     public int buffersIndexAmount = 0;
     private final List<GlUniform> updatedUniforms = new ArrayList<>();
+
+    public BufferUniform projMatUniform;
+    public Matrix4fGlUniform modelViewUniform;
 
     public GlProgram(String name, int id, HashSet<GlProgramSnippet> snippets, HashMap<String, UniformType<?>> uniforms) {
         this.name = name;
@@ -50,6 +53,12 @@ public class GlProgram implements Bindable, Compilable, Closeable {
             if (uniform instanceof SamplerUniform sampler)
                 samplers.add(sampler);
         }
+
+        GlUniform proj = this.uniformsByName.get("ProjMat");
+        if (proj instanceof BufferUniform bu) this.projMatUniform = bu;
+
+        GlUniform mv = this.uniformsByName.get("ModelViewMat");
+        if (mv instanceof Matrix4fGlUniform mu) this.modelViewUniform = mu;
 
         if (!samplers.isEmpty()) {
             GL20.glUseProgram(this.id);
@@ -98,52 +107,28 @@ public class GlProgram implements Bindable, Compilable, Closeable {
     }
 
     public static void unbindActive() {
-        if (ACTIVE_PROGRAM != null) {
-            GL20.glUseProgram(0);
-            ACTIVE_PROGRAM = null;
-        }
+        GL20.glUseProgram(0);
+        ACTIVE_PROGRAM = null;
     }
 
     @Override
     public void unbind() {
-        if (ACTIVE_PROGRAM == this) {
-            GL20.glUseProgram(0);
-            ACTIVE_PROGRAM = null;
-        }
+        unbindActive();
     }
 
     public void addUpdatedUniform(GlUniform uniform) {
-        this.updatedUniforms.add(uniform);
+        if (!this.updatedUniforms.contains(uniform)) {
+            this.updatedUniforms.add(uniform);
+        }
     }
 
-    public <T extends GlUniform> T getUniform(String name, UniformType<T> type) {
-        T uniform = getUniformNullable(name, type);
-        if (uniform == null)
-            ExceptionPrinter.printAndExit(new NoSuchUniformException(name, this.name));
-        return uniform;
+    @SuppressWarnings("unchecked")
+    public <T extends GlUniform> T getUniform(String name, UniformType<T> uniformType) {
+        return (T) this.uniformsByName.get(name);
     }
 
-    public <T extends GlUniform> void consumeIfUniformPresent(String name, UniformType<T> type, Consumer<T> consumer) {
-        T uniform = getUniformNullable(name, type);
-        if (uniform != null)
-            consumer.accept(uniform);
-    }
-
-    public <T extends GlUniform> T getUniformNullable(String name, UniformType<T> type) {
-        return (T) uniformsByName.get(name);
-    }
-    
-    public SamplerUniform getSampler(int samplerId) {
-        SamplerUniform sampler = getSamplerNullable(samplerId);
-        if (sampler == null)
-            ExceptionPrinter.printAndExit(new NoSuchUniformException("Sampler[" + samplerId + "]", this.name));
-        return sampler;
-    }
-
-    public void consumerIfSamplerPresent(int samplerId, Consumer<SamplerUniform> consumer) {
-        SamplerUniform sampler = getSamplerNullable(samplerId);
-        if (sampler != null)
-            consumer.accept(sampler);
+    public GlUniform getUniform(String name) {
+        return this.uniformsByName.get(name);
     }
 
     public SamplerUniform getSamplerNullable(int samplerId) {

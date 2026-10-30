@@ -2,7 +2,6 @@ package com.sixeyes.client.util.render
 
 import com.sixeyes.client.extensions.mc
 import com.sixeyes.client.render.main.ChromaRenderer
-import com.sixeyes.client.render.main.scissor.ScissorRect
 import org.joml.Vector4f
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -13,7 +12,7 @@ object ScissorUtil {
     private val CACHE_SCISSOR = Vector4f(-1f)
 
     fun start(x: Float, y: Float, width: Float, height: Float) {
-        ChromaRenderer.scissorStack.push(ScissorRect(x, y, width, height))
+        ChromaRenderer.scissorStack.push(x, y, width, height)
         val gfx = RenderUtils.currentGraphics
         if (gfx != null) {
             val cur = ChromaRenderer.scissorStack.current

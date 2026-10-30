@@ -38,8 +38,8 @@ public class GpuBuffer implements Bindable, AutoCloseable {
         int bytes = data.remaining();
         if (bytes > this.capacity) {
             this.capacity = Math.max(bytes, Math.max(this.capacity * 2, 65536));
+            GL15.glBufferData(this.target.glId, (long) this.capacity, usage.glId);
         }
-        GL15.glBufferData(this.target.glId, this.capacity, usage.glId);
         GL15.glBufferSubData(this.target.glId, 0, data);
         unbind();
     }

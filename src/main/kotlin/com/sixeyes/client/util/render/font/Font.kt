@@ -13,6 +13,7 @@ import com.sixeyes.client.util.render.engine.controls.LayerControl
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Matrix4f
 import org.joml.Vector4f
+import org.lwjgl.system.MemoryUtil
 
 class Font(
     val name: String,
@@ -32,6 +33,7 @@ class Font(
     val vulkanPipeline: RenderPipeline by lazy {
         VulkanFontPipelines.getPipeline(distanceRange)
     }
+
     class Glyph(
         val advance: Float,
         val u0: Float,
@@ -57,9 +59,10 @@ class Font(
         var maxWidth = 0f
         var lineWidth = 0f
         var i = 0
-        while (i < text.length) {
+        val len = text.length
+        while (i < len) {
             when (val c = text[i++]) {
-                '§' -> if (i < text.length) i++
+                '§' -> if (i < len) i++
                 '\n' -> {
                     maxWidth = maxOf(maxWidth, lineWidth)
                     lineWidth = 0f
@@ -187,25 +190,18 @@ class Font(
         var baselineY = y + ascender * size
         var maxWidth = 0f
         val shadowFactor = if (isShadow) 0.25f else 1.0f
-        val baseAlpha = color.a / 255f
 
-        var curR = (color.r / 255f) * shadowFactor
-        var curG = (color.g / 255f) * shadowFactor
-        var curB = (color.b / 255f) * shadowFactor
+        val baseAlpha = color.a.coerceIn(0, 255)
+        var curPackedArgb = 0
 
-        fun applyColor(rgb: Int) {
-            curR = ((rgb shr 16 and 0xFF) / 255f) * shadowFactor
-            curG = ((rgb shr 8 and 0xFF) / 255f) * shadowFactor
-            curB = ((rgb and 0xFF) / 255f) * shadowFactor
+        fun updatePackedColor(rgb: Int) {
+            val r = (((rgb shr 16 and 0xFF).toFloat() * shadowFactor) + 0.5f).toInt().coerceIn(0, 255)
+            val g = (((rgb shr 8 and 0xFF).toFloat() * shadowFactor) + 0.5f).toInt().coerceIn(0, 255)
+            val b = (((rgb and 0xFF).toFloat() * shadowFactor) + 0.5f).toInt().coerceIn(0, 255)
+            curPackedArgb = (baseAlpha shl 24) or (r shl 16) or (g shl 8) or b
         }
 
-        fun currentArgb(): Int {
-            val a = (baseAlpha * 255f + 0.5f).toInt().coerceIn(0, 255)
-            val r = (curR * 255f + 0.5f).toInt().coerceIn(0, 255)
-            val g = (curG * 255f + 0.5f).toInt().coerceIn(0, 255)
-            val b = (curB * 255f + 0.5f).toInt().coerceIn(0, 255)
-            return (a shl 24) or (r shl 16) or (g shl 8) or b
-        }
+        updatePackedColor(color.argb)
 
         val pose = gfx.pose()
         pose.pushMatrix()
@@ -223,10 +219,10 @@ class Font(
                         if (i >= len) break
                         val code = text[i++]
                         if (code == 'r' || code == 'R') {
-                            applyColor(color.argb)
+                            updatePackedColor(color.argb)
                         } else {
                             val rgb = formatColor(code)
-                            if (rgb != -1) applyColor(rgb)
+                            if (rgb != -1) updatePackedColor(rgb)
                         }
                     }
                     '\n' -> {
@@ -250,7 +246,7 @@ class Font(
                                 atlasId,
                                 gx0, gx1, gy0, gy1,
                                 glyph.u0, glyph.u1, glyph.v0, glyph.v1,
-                                currentArgb()
+                                curPackedArgb
                             )
                         }
                         penX += glyph.advance * size
@@ -292,6 +288,13 @@ class Font(
 
         applyColor(color.argb)
 
+        val m00 = matrix.m00()
+        val m01 = matrix.m01()
+        val m10 = matrix.m10()
+        val m11 = matrix.m11()
+        val m30 = matrix.m30()
+        val m31 = matrix.m31()
+
         var i = 0
         val len = text.length
         while (i < len) {
@@ -320,7 +323,18 @@ class Font(
                         val x1 = penX + glyph.x1 * size
                         val y0 = baselineY - glyph.y0 * size
                         val y1 = baselineY - glyph.y1 * size
-                        quad(builder, matrix, x0, y0, x1, y1, glyph.u0, glyph.v0, glyph.u1, glyph.v1, r, g, b, alpha, sx, sy, sz, sw)
+
+                        val ptr = builder.reserveQuad()
+                        if (ptr != -1L) {
+                            writeGlyphDirect(
+                                ptr,
+                                m00, m01, m10, m11, m30, m31,
+                                x0, y0, x1, y1,
+                                glyph.u0, glyph.v0, glyph.u1, glyph.v1,
+                                r, g, b, alpha,
+                                sx, sy, sz, sw
+                            )
+                        }
                     }
                     penX += glyph.advance * size
                 }
@@ -329,41 +343,74 @@ class Font(
         return maxOf(maxWidth, penX - x)
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun quad(
-        b: MeshBuilder, m: Matrix4f,
+    private inline fun writeGlyphDirect(
+        ptr: Long,
+        m00: Float, m01: Float, m10: Float, m11: Float, m30: Float, m31: Float,
         x0: Float, y0: Float, x1: Float, y1: Float,
         u0: Float, v0: Float, u1: Float, v1: Float,
         r: Float, g: Float, bCol: Float, a: Float,
         sx: Float, sy: Float, sz: Float, sw: Float
     ) {
-        vertex(b, m, x0, y0, u0, v0, r, g, bCol, a, sx, sy, sz, sw)
-        vertex(b, m, x0, y1, u0, v1, r, g, bCol, a, sx, sy, sz, sw)
-        vertex(b, m, x1, y1, u1, v1, r, g, bCol, a, sx, sy, sz, sw)
-        vertex(b, m, x1, y0, u1, v0, r, g, bCol, a, sx, sy, sz, sw)
+        val v0Ptr = ptr
+        MemoryUtil.memPutFloat(v0Ptr, m00 * x0 + m10 * y0 + m30)
+        MemoryUtil.memPutFloat(v0Ptr + 4L, m01 * x0 + m11 * y0 + m31)
+        MemoryUtil.memPutFloat(v0Ptr + 8L, 0f)
+        MemoryUtil.memPutFloat(v0Ptr + 12L, u0)
+        MemoryUtil.memPutFloat(v0Ptr + 16L, v0)
+        writeGlyphCommon(v0Ptr, r, g, bCol, a, sx, sy, sz, sw)
+
+        val v1Ptr = ptr + 96L
+        MemoryUtil.memPutFloat(v1Ptr, m00 * x0 + m10 * y1 + m30)
+        MemoryUtil.memPutFloat(v1Ptr + 4L, m01 * x0 + m11 * y1 + m31)
+        MemoryUtil.memPutFloat(v1Ptr + 8L, 0f)
+        MemoryUtil.memPutFloat(v1Ptr + 12L, u0)
+        MemoryUtil.memPutFloat(v1Ptr + 16L, v1)
+        writeGlyphCommon(v1Ptr, r, g, bCol, a, sx, sy, sz, sw)
+
+        val v2Ptr = ptr + 192L
+        MemoryUtil.memPutFloat(v2Ptr, m00 * x1 + m10 * y1 + m30)
+        MemoryUtil.memPutFloat(v2Ptr + 4L, m01 * x1 + m11 * y1 + m31)
+        MemoryUtil.memPutFloat(v2Ptr + 8L, 0f)
+        MemoryUtil.memPutFloat(v2Ptr + 12L, u1)
+        MemoryUtil.memPutFloat(v2Ptr + 16L, v1)
+        writeGlyphCommon(v2Ptr, r, g, bCol, a, sx, sy, sz, sw)
+
+        val v3Ptr = ptr + 288L
+        MemoryUtil.memPutFloat(v3Ptr, m00 * x1 + m10 * y0 + m30)
+        MemoryUtil.memPutFloat(v3Ptr + 4L, m01 * x1 + m11 * y0 + m31)
+        MemoryUtil.memPutFloat(v3Ptr + 8L, 0f)
+        MemoryUtil.memPutFloat(v3Ptr + 12L, u1)
+        MemoryUtil.memPutFloat(v3Ptr + 16L, v0)
+        writeGlyphCommon(v3Ptr, r, g, bCol, a, sx, sy, sz, sw)
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun vertex(
-        b: MeshBuilder, m: Matrix4f, x: Float, y: Float, u: Float, v: Float,
-        r: Float, g: Float, bCol: Float, a: Float,
+    private inline fun writeGlyphCommon(
+        v: Long,
+        r: Float, g: Float, b: Float, alpha: Float,
         sx: Float, sy: Float, sz: Float, sw: Float
     ) {
-        b.vertex(m, x, y, 0f)
-            .element2f(UV, u, v)
-            .element4f(COLOR, r, g, bCol, a)
-            .element3f(STYLE, 0f, 0.5f, 0f)
-            .element4f(OUTLINE, 0f, 0f, 0f, 0f)
-            .element4f(FADE, -1e5f, 1e5f, 0f, 0f)
-            .element4f(SCISSOR, sx, sy, sz, sw)
-    }
+        MemoryUtil.memPutFloat(v + 20L, r)
+        MemoryUtil.memPutFloat(v + 24L, g)
+        MemoryUtil.memPutFloat(v + 28L, b)
+        MemoryUtil.memPutFloat(v + 32L, alpha)
 
-    companion object {
-        private val UV = MsdfTextRenderer.TextFormats.getVertexElement("UV0")
-        private val COLOR = MsdfTextRenderer.TextFormats.getVertexElement("Color")
-        private val STYLE = MsdfTextRenderer.TextFormats.getVertexElement("Style0")
-        private val OUTLINE = MsdfTextRenderer.TextFormats.getVertexElement("OutlineColor0")
-        private val FADE = MsdfTextRenderer.TextFormats.getVertexElement("Fade0")
-        private val SCISSOR = MsdfTextRenderer.TextFormats.getVertexElement("Scissor0")
+        MemoryUtil.memPutFloat(v + 36L, 0f)
+        MemoryUtil.memPutFloat(v + 40L, 0.5f)
+        MemoryUtil.memPutFloat(v + 44L, 0f)
+
+        MemoryUtil.memPutFloat(v + 48L, 0f)
+        MemoryUtil.memPutFloat(v + 52L, 0f)
+        MemoryUtil.memPutFloat(v + 56L, 0f)
+        MemoryUtil.memPutFloat(v + 60L, 0f)
+
+        MemoryUtil.memPutFloat(v + 64L, -1e5f)
+        MemoryUtil.memPutFloat(v + 68L, 1e5f)
+        MemoryUtil.memPutFloat(v + 72L, 0f)
+        MemoryUtil.memPutFloat(v + 76L, 0f)
+
+        MemoryUtil.memPutFloat(v + 80L, sx)
+        MemoryUtil.memPutFloat(v + 84L, sy)
+        MemoryUtil.memPutFloat(v + 88L, sz)
+        MemoryUtil.memPutFloat(v + 92L, sw)
     }
 }

@@ -25,22 +25,23 @@ public final class IndexBufferGenerator {
 	}
 
 	public GpuBuffer getIndexBuffer(int requiredSize, boolean standalone) {
-		if (standalone)
+		if (standalone) {
 			return generateIndexBuffer(requiredSize);
-		else {
+		} else {
 			if (!this.isLargeEnough(requiredSize)) {
 				if (this.indexBuffer != null)
 					this.indexBuffer.close();
 
-				this.indexBuffer = generateIndexBuffer(requiredSize);
-				this.size = requiredSize;
+				int targetCapacity = Math.max(requiredSize * 2, 24576);
+				this.indexBuffer = generateIndexBuffer(targetCapacity);
+				this.size = targetCapacity;
 			}
 			return this.indexBuffer;
 		}
 	}
 
 	private GpuBuffer generateIndexBuffer(int requiredSize) {
-		requiredSize = Mth.roundToward(requiredSize * 2, this.vertexCountInTriangulated);
+		requiredSize = Mth.roundToward(requiredSize, this.vertexCountInTriangulated);
 		int i = requiredSize / this.vertexCountInTriangulated;
 		IndexType indexType = IndexType.smallestFor(
 				i * this.vertexCountInShape
@@ -51,10 +52,19 @@ public final class IndexBufferGenerator {
 
 		try {
 			this.indexType = indexType;
-			IntConsumer intConsumer = this.getIndexConsumer(byteBuffer);
-
-			for (int l = 0; l < requiredSize; l += this.vertexCountInTriangulated)
-				this.triangulator.accept(intConsumer, l * this.vertexCountInShape / this.vertexCountInTriangulated);
+			if (this.indexType == IndexType.SHORT) {
+				IntConsumer consumer = index -> byteBuffer.putShort((short) index);
+				for (int l = 0; l < requiredSize; l += this.vertexCountInTriangulated) {
+					int base = l * this.vertexCountInShape / this.vertexCountInTriangulated;
+					this.triangulator.accept(consumer, base);
+				}
+			} else {
+				IntConsumer consumer = byteBuffer::putInt;
+				for (int l = 0; l < requiredSize; l += this.vertexCountInTriangulated) {
+					int base = l * this.vertexCountInShape / this.vertexCountInTriangulated;
+					this.triangulator.accept(consumer, base);
+				}
+			}
 
 			byteBuffer.flip();
 
@@ -63,13 +73,4 @@ public final class IndexBufferGenerator {
 			MemoryUtil.memFree(byteBuffer);
 		}
 	}
-
-	private IntConsumer getIndexConsumer(ByteBuffer indexBuffer) {
-		if (this.indexType == IndexType.SHORT)
-			return index -> indexBuffer.putShort((short) index);
-		else
-			return indexBuffer::putInt;
-	}
-
-
 }

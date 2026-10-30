@@ -28,7 +28,7 @@ import org.lwjgl.opengl.GL14;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayDeque;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -49,10 +49,10 @@ public class ChromaRenderer {
     public static GlProgram globalProgram;
     public static final ScissorStack scissorStack = new ScissorStack();
 
-    private static final ConcurrentLinkedQueue<ByteBufferBuilder> BUFFER_POOL = new ConcurrentLinkedQueue<>();
-    private static final ConcurrentLinkedQueue<MeshBuilder> MESH_BUILDER_POOL = new ConcurrentLinkedQueue<>();
-    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    private static final int SMALL_BUFFER_SIZE = 256 * 1024;
+    private static final ArrayDeque<ByteBufferBuilder> BUFFER_POOL = new ArrayDeque<>(16);
+    private static final ArrayDeque<MeshBuilder> MESH_BUILDER_POOL = new ArrayDeque<>(16);
+    private static final int DEFAULT_BUFFER_SIZE = 512 * 1024;
+    private static final int SMALL_BUFFER_SIZE = 128 * 1024;
 
     public static volatile int bufferPoolHits = 0;
     public static volatile int bufferPoolMisses = 0;
@@ -67,15 +67,18 @@ public class ChromaRenderer {
     }
 
     public static void initMatrix() {
-        BufferUniform projectionUniform = globalProgram.getUniform("ProjMat", UniformType.BUFFER);
+        if (globalProgram == null) return;
+
+        BufferUniform projectionUniform = globalProgram.projMatUniform;
         if (projectionUniform != null) {
             GpuBufferSlice slice = RenderSystem.getProjectionMatrixBuffer();
             projectionUniform.set(slice);
         }
 
-        Matrix4fGlUniform modelViewUniform = globalProgram.getUniform("ModelViewMat", UniformType.MATRIX);
-        if (modelViewUniform != null)
+        Matrix4fGlUniform modelViewUniform = globalProgram.modelViewUniform;
+        if (modelViewUniform != null) {
             modelViewUniform.set(RenderSystem.getModelViewMatrixCopy());
+        }
     }
 
     public static void setGlobalProgram(GlProgram globalProgram) {
@@ -106,9 +109,8 @@ public class ChromaRenderer {
     }
 
     public static void bindFramebuffer(RenderTarget framebuffer) {
-        if (framebuffer != null) {
-            if (framebuffer.getColorTextureView() != null)
-                bindFramebuffer(framebuffer.getColorTextureView(), framebuffer.getDepthTextureView());
+        if (framebuffer != null && framebuffer.getColorTextureView() != null) {
+            bindFramebuffer(framebuffer.getColorTextureView(), framebuffer.getDepthTextureView());
         }
     }
 
@@ -120,7 +122,7 @@ public class ChromaRenderer {
     }
 
     private static ByteBufferBuilder getPooledBuffer(int size) {
-        ByteBufferBuilder buffer = BUFFER_POOL.poll();
+        ByteBufferBuilder buffer = BUFFER_POOL.pollFirst();
         if (buffer == null) {
             buffer = new ByteBufferBuilder(size);
             bufferPoolMisses++;
@@ -128,26 +130,26 @@ public class ChromaRenderer {
             try {
                 buffer.clear();
                 bufferPoolHits++;
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 buffer = new ByteBufferBuilder(size);
                 bufferPoolMisses++;
             }
         }
         return buffer;
     }
-    
+
     private static void returnBuffer(ByteBufferBuilder buffer) {
         if (buffer != null && BUFFER_POOL.size() < 16) {
             try {
                 buffer.discard();
-                BUFFER_POOL.offer(buffer);
-            } catch (IllegalStateException e) {
+                BUFFER_POOL.addLast(buffer);
+            } catch (Exception ignored) {
             }
         }
     }
-    
+
     public static MeshBuilder acquireMeshBuilder(DrawMode drawMode, VertexFormat vertexFormat) {
-        MeshBuilder meshBuilder = MESH_BUILDER_POOL.poll();
+        MeshBuilder meshBuilder = MESH_BUILDER_POOL.pollFirst();
         if (meshBuilder == null) {
             ByteBufferBuilder buffer = getPooledBuffer(DEFAULT_BUFFER_SIZE);
             meshBuilder = new MeshBuilder(buffer, drawMode, vertexFormat, false);
@@ -163,12 +165,12 @@ public class ChromaRenderer {
         }
         return meshBuilder;
     }
-    
+
     public static void releaseMeshBuilder(MeshBuilder meshBuilder) {
         if (meshBuilder != null && MESH_BUILDER_POOL.size() < 16) {
             try {
                 meshBuilder.bufferAllocator.clear();
-                MESH_BUILDER_POOL.offer(meshBuilder);
+                MESH_BUILDER_POOL.addLast(meshBuilder);
             } catch (Exception ignored) {
             }
         } else if (meshBuilder != null) {
@@ -195,7 +197,7 @@ public class ChromaRenderer {
         releaseMeshBuilder(meshBuilder);
         return null;
     }
-    
+
     public static Mesh createSmallMesh(DrawMode drawMode, VertexFormat vertexFormat, Consumer<MeshBuilder> buildConsumer) {
         ByteBufferBuilder buffer = getPooledBuffer(SMALL_BUFFER_SIZE);
         MeshBuilder meshBuilder = new MeshBuilder(buffer, drawMode, vertexFormat, false);

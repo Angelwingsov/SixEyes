@@ -14,10 +14,12 @@ object ProjectionUtil {
         if (!camera.isInitialized) return null
 
         val camPos = camera.position()
-        val diff = Vec3(worldX - camPos.x, worldY - camPos.y, worldZ - camPos.z)
+        val dx = worldX - camPos.x
+        val dy = worldY - camPos.y
+        val dz = worldZ - camPos.z
 
         val forward = camera.forwardVector()
-        val dot = diff.x * forward.x() + diff.y * forward.y() + diff.z * forward.z()
+        val dot = dx * forward.x() + dy * forward.y() + dz * forward.z()
         if (dot <= 0.05) return null
 
         val projected = gameRenderer.projectPointToScreen(Vec3(worldX, worldY, worldZ))

@@ -133,6 +133,38 @@ public class MeshBuilder implements IMeshBuilder<MeshBuilder, Mesh> {
         }
     }
 
+    public long reserveQuad() {
+        this.ensureBuilding();
+        this.endVertex();
+        if (this.vertexCount + 4 > MAX_VERTICES) {
+            ExceptionPrinter.printAndExit(new VertexOverflowException());
+            return -1L;
+        }
+        this.vertexCount += 4;
+        long ptr = this.bufferAllocator.reserve(this.vertexSize * 4);
+        this.vertexPointer = -1L;
+        this.currentMask = 0;
+        return ptr;
+    }
+
+    public long reserveVertices(int count) {
+        this.ensureBuilding();
+        this.endVertex();
+        if (this.vertexCount + count > MAX_VERTICES) {
+            ExceptionPrinter.printAndExit(new VertexOverflowException());
+            return -1L;
+        }
+        this.vertexCount += count;
+        long ptr = this.bufferAllocator.reserve(this.vertexSize * count);
+        this.vertexPointer = -1L;
+        this.currentMask = 0;
+        return ptr;
+    }
+
+    public int getVertexSize() {
+        return this.vertexSize;
+    }
+
     private long beginVertex() {
         this.ensureBuilding();
         this.endVertex();

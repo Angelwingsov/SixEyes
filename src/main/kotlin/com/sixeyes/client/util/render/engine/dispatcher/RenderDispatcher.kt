@@ -10,6 +10,7 @@ import java.util.ArrayDeque
 class RenderDispatcher {
     private val queues: Array<ArrayList<RenderBatch>> = Array(ClientRenderPipeline.entries.size) { ArrayList() }
     private val batchPool: ArrayDeque<RenderBatch> = ArrayDeque(32)
+    private var activeMask: Int = 0
 
     fun getBuilder(
         pipeline: ClientRenderPipeline,
@@ -35,6 +36,7 @@ class RenderDispatcher {
             RenderBatch(renderer, newBuilder, state)
         }
         queue.add(newBatch)
+        activeMask = activeMask or (1 shl pipeline.ordinal)
 
         return newBuilder
     }
@@ -44,15 +46,25 @@ class RenderDispatcher {
     }
 
     fun flushPipelinesArray(pipelines: Array<out ClientRenderPipeline>) {
+        if (activeMask == 0) return
         for (pipe in pipelines) {
-            flushQueue(queues[pipe.ordinal])
+            val bit = 1 shl pipe.ordinal
+            if ((activeMask and bit) != 0) {
+                flushQueue(queues[pipe.ordinal])
+                activeMask = activeMask and bit.inv()
+            }
         }
     }
 
     fun flushAll() {
+        if (activeMask == 0) return
         for (pipe in ClientRenderPipeline.entries) {
-            flushQueue(queues[pipe.ordinal])
+            val bit = 1 shl pipe.ordinal
+            if ((activeMask and bit) != 0) {
+                flushQueue(queues[pipe.ordinal])
+            }
         }
+        activeMask = 0
     }
 
     private fun flushQueue(queue: ArrayList<RenderBatch>) {

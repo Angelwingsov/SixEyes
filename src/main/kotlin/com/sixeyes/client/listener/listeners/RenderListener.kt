@@ -29,7 +29,6 @@ import com.sixeyes.event.EventManager
 import com.sixeyes.event.events.OverlayRenderEvent
 import net.minecraft.client.DeltaTracker
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import java.util.Locale
 
 object RenderListener : Listener() {
     var loaded = false
@@ -162,7 +161,10 @@ object RenderListener : Listener() {
         val screenH = mc.window.guiScaledHeight.toFloat()
 
         val fps = mc.fps
-        val frameMs = String.format(Locale.US, "%.2f", if (fps > 0) 1000f / fps else 0f)
+        val ms = if (fps > 0) (100000 / fps) else 0
+        val msInt = ms / 100
+        val msFrac = ms % 100
+        val frameMs = if (msFrac < 10) "$msInt.0$msFrac" else "$msInt.$msFrac"
         val draws = RenderMetrics.lastDrawCalls
         val verts = RenderMetrics.lastVertices
         val idx = RenderMetrics.lastIndices
@@ -213,4 +215,3 @@ object RenderListener : Listener() {
             .build()
     }
 }
-

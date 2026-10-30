@@ -16,9 +16,11 @@ public class DefaultVertexFormatBufferUploader extends VertexFormatBufferUploade
         VertexFormatBuffer vertexFormatBuffer = vertexFormat.getVertexFormatBufferOrCreate(() -> createVertexFormatBuffer(vertexFormat));
 
         GL30.glBindVertexArray(vertexFormatBuffer.glId());
-        vertexBuffer.bind();
-        setupBuffer(vertexFormat);
-        vertexFormatBuffer.buffer().set(vertexBuffer);
+        if (vertexFormatBuffer.buffer().get() != vertexBuffer) {
+            vertexBuffer.bind();
+            setupBuffer(vertexFormat);
+            vertexFormatBuffer.buffer().set(vertexBuffer);
+        }
     }
 
     @Override
